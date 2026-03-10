@@ -1,0 +1,30 @@
+services:      
+  mysql:
+    container_name: MySqlPocarDeVender
+    restart: always
+    image: mysql:8.0
+    env_file:
+      - .env
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_USER=${MYSQL_USER_NAME}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ALLOW_EMPTY_PASSWORD=true
+      - MYSQL_DATABASE=${MYSQL_DATA_BASE}
+      - MYSQL_SYNCHRONIZE=${MYSQL_SYNCHRONIZE}
+    networks:
+      - internalnet
+    volumes:
+      - ./init-db/init.sql:/docker-entrypoint-initdb.d/0_init.sql
+      - MySqlPocarDeVender-datavolume:/var/lib/mysql
+    ports:
+      - 3306:3306
+    expose:
+      - 3306
+
+networks:
+  internalnet:
+    driver: bridge
+
+volumes:
+  MySqlPocarDeVender-datavolume:
