@@ -53,7 +53,7 @@ export class AgendamentoController {
   @ApiOkResponse({ type: [AgendamentoResponseDto] })
 
   findAll(@Req() req: Request,
-    @Query() { page = 1, limit = 10000 }: PaginationDto,
+    @Query() { page = 1, limit = 1000 }: PaginationDto,
     // @Query() { clienteId, usuarioId }: QueryAgendamentoDto,
     @Query() { clienteId }: ClienteIdQueryDto,
     @Query() { usuarioId }: UsuarioIdQueryDto,

@@ -13,7 +13,7 @@ import { Cliente } from '../cliente/entities/cliente.entity';
 import { BaseService } from '../shared/base-service';
 import { BetweenQueryDto } from 'src/common/dtos/from-to.dto';
 import { PossivelClienteQueryDto } from '../contato/dto/query-possivel-cliente.dto';
-import { Between, FindOptionsWhere, IsNull, Not } from 'typeorm';
+import { Between, FindOptionsWhere, IsNull, LessThanOrEqual, Not } from 'typeorm';
 
 @Injectable()
 export class AgendamentoService extends BaseService {
@@ -65,6 +65,7 @@ export class AgendamentoService extends BaseService {
     const entityManager = this.loadEntityManager(systemId);
 
     let query = [];
+
     if (usuarioId) {
       query.push({ usuario: { id: usuarioId } })
     }
