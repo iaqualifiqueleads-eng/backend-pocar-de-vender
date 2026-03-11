@@ -9,6 +9,7 @@ import {
   UseGuards,
   Req,
   Query,
+  Logger,
 } from '@nestjs/common';
 import { AgendamentoService } from './agendamento.service';
 import { CreateAgendamentoDto } from './dto/create-agendamento.dto';
@@ -41,6 +42,8 @@ import { PossivelClienteQueryDto } from '../contato/dto/query-possivel-cliente.d
 export class AgendamentoController {
   constructor(private readonly agendamentoService: AgendamentoService) { }
 
+  private logger = new Logger;
+
   @Post()
   @ApiOperation({ summary: 'Criar agendamento' })
   @ApiCreatedResponse({ type: AgendamentoResponseDto })
@@ -58,6 +61,8 @@ export class AgendamentoController {
     @Query() { clienteId }: ClienteIdQueryDto,
     @Query() { usuarioId }: UsuarioIdQueryDto,
   ) {
+    this.logger.verbose("[Agendamento Controller][Find All]");
+
     return this.agendamentoService.findAll(req['systemId'], { page, limit, usuarioId, clienteId });
   }
 
@@ -78,6 +83,8 @@ export class AgendamentoController {
     @Query() { possivel_cliente }: PossivelClienteQueryDto,
     @Query() { page, limit }: PaginationDto,
   ) {
+    this.logger.verbose("[Agendamento Controller][relatorio]");
+
     return this.agendamentoService.findRelatorio(
       req['systemId'],
       {

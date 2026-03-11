@@ -9,6 +9,7 @@ import {
   Query,
   Req,
   UseGuards,
+  Logger,
 } from '@nestjs/common';
 import { ClienteService, DataToUpdate } from './cliente.service';
 import { CreateClienteDto } from './dto/create-cliente.dto';
@@ -40,10 +41,12 @@ import { ListaCnpj } from './dto/lista-cnpj.dto';
 export class ClienteController {
   constructor(private readonly clienteService: ClienteService) { }
 
+  private logger = new Logger;
+
   @Post()
   @ApiOperation({ summary: 'Criar Cliente' })
   @ApiCreatedResponse({ type: ClienteResponseDto })
-  create(@Req() req: Request, @Body() createClienteDto: CreateClienteDto) {
+  create(@Req() req: Request, @Body() createClienteDto: CreateClienteDto) {    
     return this.clienteService.create(req["systemId"], createClienteDto);
   }
 
@@ -62,6 +65,8 @@ export class ClienteController {
     @Query() { page = 1, limit = 10000 }: PaginationDto,
     @Query() { usuarioId, contatado }: ClienteQueryDto,
   ) {
+    this.logger.verbose("[Cliente Controller][FindAll]");
+
     return this.clienteService.findAll(req["systemId"], {
       page,
       limit,
@@ -81,11 +86,12 @@ export class ClienteController {
   @ApiOperation({ summary: 'Recupera Cliente pelo ID' })
   @ApiOkResponse({ type: ClienteResponseDto })
   findAllByUsuariosIds(@Req() req: Request, @Query() { ids }: IdsQueryDto) {
+    this.logger.verbose("[Cliente Controller][All By user ID]");
+    
     const _ids = ids ? ids?.split(',') : [req.user["sub"]]
 
     return this.clienteService.findAllByUsuariosIds(req["systemId"], _ids);
   }
-
 
   @Get("/update-all-clientes-to-possivel-cliente-false/update-all-clientes-to-possivel-cliente-false")
   @ApiOperation({ summary: 'Atualiza Cliente' })
