@@ -168,9 +168,22 @@ export class ContatoService extends BaseService {
     //   // where.push({ ocorrencias: ocorenciasIds?.map((id) => ({ id })) });
     //   query = { ...query, ocorrencias: ocorenciasIds?.map((id) => ({ id })) };
     // }
+    // if (from && to) {
+    //   // where.push({ createdAt: Between(from, to) });
+    //   query = { ...query, createdAt: Between(from, to) };
+    // }
+
     if (from && to) {
-      // where.push({ createdAt: Between(from, to) });
-      query = { ...query, createdAt: Between(from, to) };
+      const start = new Date(from);
+      const end = new Date(to);
+
+      start.setHours(0, 0, 0, 0);
+      end.setHours(23, 59, 59, 999);
+
+      query = {
+        ...query,
+        createdAt: Between(start, end),
+      };
     }
 
     if (!usuario_id && usuariosIds) {
