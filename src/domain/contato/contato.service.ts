@@ -220,19 +220,38 @@ export class ContatoService extends BaseService {
 
   }
 
-  async relatorioDashboard(systemId: string, { usuariosIds, from, to }: { usuariosIds?: string[] } & BetweenQueryDto) {
+  async relatorioDashboard(
+    systemId: string,
+    {
+      usuariosIds,
+      from,
+      to,
+      na_base,
+    }: {
+      usuariosIds?: string[];
+      na_base?: boolean;
+    } & BetweenQueryDto,
+  ) {
     const entityManager = this.loadEntityManager(systemId);
 
     from = from ?? subWeeks(new Date(), 1);
     to = to ?? new Date();
 
-    let query = {};
+    let query: any = {};
     if (usuariosIds) {
       query = { ...query, usuario: usuariosIds?.map((id) => ({ id })) };
     }
     if (from && to) {
       query = { ...query, createdAt: Between(from, addDays(new Date(to), 1)) };
     }
+    if (typeof na_base === 'boolean') {
+      query.cliente = {
+        ...query.cliente,
+        na_base,
+      };
+    }
+
+    console.log('[query] => ', query);
 
     return await entityManager.find(Contato, {
       where: query,

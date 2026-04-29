@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
@@ -59,6 +59,7 @@ export class CreateClienteDto {
   })
   @IsString()
   @IsOptional()
+  @Transform(({ value }) => value?.replace(/\D/g, ''))
   cnpj?: string;
 
   @ApiProperty({

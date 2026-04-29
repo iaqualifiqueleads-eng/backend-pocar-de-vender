@@ -4,7 +4,7 @@ import { Produto } from 'src/domain/produto/entities/produto.entity';
 import { AggregateRoot } from 'src/domain/shared/aggregate-root';
 import { Telefone } from 'src/domain/telefone/entities/telefone.entity';
 import { Usuario } from 'src/domain/usuario/entities/usuario.entity';
-import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToOne, Unique } from 'typeorm';
+import { BeforeInsert, BeforeUpdate, Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToOne, Unique } from 'typeorm';
 
 @Entity('cliente')
 // @Unique("ddd-telefone_principal", ["ddd", "telefone_principal"])
@@ -87,4 +87,12 @@ export class Cliente extends AggregateRoot {
   @OneToOne(() => Endereco, { nullable: true, eager: true })
   @JoinColumn()
   endereco?: Endereco
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  limparCnpj() {
+    if (this.cnpj) {
+      this.cnpj = this.cnpj.replace(/\D/g, '');
+    }
+  }
 }

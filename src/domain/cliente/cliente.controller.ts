@@ -141,7 +141,6 @@ export class ClienteController {
     return this.clienteService.clientesSemTelefone(req["systemId"])
   }
 
-
   @Post("update-clientes/na-base")
   async updateclientesNaBase(@Req() req: Request, @Body() data: ListaCnpj) {
     return this.clienteService.updateclientesNaBase(req["systemId"], data)

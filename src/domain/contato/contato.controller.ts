@@ -27,6 +27,7 @@ import { IdsQueryDto } from 'src/common/dtos/ids.dto';
 import { BetweenQueryDto } from 'src/common/dtos/from-to.dto';
 import { PossivelClienteQueryDto } from './dto/query-possivel-cliente.dto';
 import { UsuariosIdsQueryDto } from './dto/usuario-ids.dto';
+import { NaBaseQueryDto } from './dto/na_base-query.dto';
 
 @Controller('contato')
 @ApiTags('Contato')
@@ -114,12 +115,22 @@ export class ContatoController {
     @Req() req: Request,
     @Query() { ids }: IdsQueryDto,
     @Query() { from, to }: BetweenQueryDto,
+    @Query() { na_base } : NaBaseQueryDto,
   ) {
+    // 👇 conversão segura de string → boolean
+    let naBaseParsed: boolean | undefined = undefined;
+
+    if (na_base !== undefined) {
+      naBaseParsed = na_base === 'true';
+    }
+
+    console.log('[na_base] => ', na_base, naBaseParsed);
 
     return this.contatoService.relatorioDashboard(req["systemId"], {
       usuariosIds: ids ? ids?.split(',') : [req.user["sub"]],
       from,
       to,
+      na_base: naBaseParsed,
     });
   }
 

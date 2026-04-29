@@ -337,10 +337,9 @@ export class ClienteService extends BaseService {
       return await entityManager.update(Cliente, clienteId, { usuario: { id: clienteTransferirDto.usuarioId } });
     }))
 
-
-
     return "Cliente transferido com sucesso.";
   }
+
   async remove(systemId: string, id: string): Promise<string> {
     const entityManager = this.loadEntityManager(systemId);
 
