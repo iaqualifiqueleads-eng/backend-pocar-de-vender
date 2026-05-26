@@ -26,6 +26,8 @@ import { DataToCreateTelefones } from './dto/create-telefones.dto';
 import { IdsQueryDto } from 'src/common/dtos/ids.dto';
 import { Request } from 'express';
 import { ListaCnpj } from './dto/lista-cnpj.dto';
+import { CreateClienteByAiDto } from './dto/create-cliente-by-ia.dto';
+import { EstadosDoBrasilSigla } from '../shared/enums/estados-do-brasil-sigla.enum';
 
 @Controller('cliente')
 @ApiTags('Cliente')
@@ -46,7 +48,53 @@ export class ClienteController {
   @Post()
   @ApiOperation({ summary: 'Criar Cliente' })
   @ApiCreatedResponse({ type: ClienteResponseDto })
-  create(@Req() req: Request, @Body() createClienteDto: CreateClienteDto) {    
+  create(@Req() req: Request, @Body() createClienteDto: CreateClienteDto) {
+    return this.clienteService.create(req["systemId"], createClienteDto);
+  }
+
+  @Post('create-by-ai')
+  @ApiOperation({ summary: 'Criar Cliente' })
+  @ApiCreatedResponse({ type: ClienteResponseDto })
+  createByAi(@Req() req: Request, @Body() body: CreateClienteByAiDto) {
+
+    function formatarTelefone(numero: string) {
+      // Remove qualquer caractere que não seja número
+      const somenteNumeros = numero.replace(/\D/g, "");
+
+      // Remove o código do país 55 do início
+      const semCodigoPais = somenteNumeros.startsWith("55")
+        ? somenteNumeros.slice(2)
+        : somenteNumeros;
+
+      // Extrai DDD e telefone
+      const ddd = semCodigoPais.slice(0, 2);
+      const telefone_principal = semCodigoPais.slice(2);
+
+      return {
+        ddd,
+        telefone_principal
+      };
+    }
+
+    const createClienteDto: CreateClienteDto = {
+      usuario: body.usuario,
+      origem: "IA",
+      possivel_cliente: true,
+      nome: body.nome,
+      cnpj: body.cnpj,
+      ...formatarTelefone(body.telefone_principal),
+      email: "nao-informado@email.com",
+      endereco: {
+        uf: `${body.endereco.uf}` as EstadosDoBrasilSigla,
+        localidade: body.endereco.localidade,
+        bairro: body.endereco.bairro,
+        logradouro: body.endereco.logradouro,
+        complemento: body.endereco.complemento,
+        cep: body.endereco.cep,
+      }
+    }
+
+
     return this.clienteService.create(req["systemId"], createClienteDto);
   }
 
@@ -87,7 +135,7 @@ export class ClienteController {
   @ApiOkResponse({ type: ClienteResponseDto })
   findAllByUsuariosIds(@Req() req: Request, @Query() { ids }: IdsQueryDto) {
     this.logger.verbose("[Cliente Controller][All By user ID]");
-    
+
     const _ids = ids ? ids?.split(',') : [req.user["sub"]]
 
     return this.clienteService.findAllByUsuariosIds(req["systemId"], _ids);
@@ -178,7 +226,7 @@ export class ClienteController {
   }
 
   @Post('cadastrar/nome/cnpj/origem/usuario')
-  async cadastrarVarios(@Req() req: Request, @Body() data: { "rotulos_de_linha": string, "vendedor": string, "cnpj": string, "origem": string }[]){
+  async cadastrarVarios(@Req() req: Request, @Body() data: { "rotulos_de_linha": string, "vendedor": string, "cnpj": string, "origem": string }[]) {
     return this.clienteService.cadastrarVarios(req['systemId'], data)
   }
 }
