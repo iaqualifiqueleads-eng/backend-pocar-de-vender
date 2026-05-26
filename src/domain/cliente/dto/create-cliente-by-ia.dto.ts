@@ -54,18 +54,6 @@ export class CreateClienteByAiDto {
   @Transform(({ value }) => value?.replace(/\D/g, ''))
   cnpj?: string;
 
-
-  @ApiProperty({
-    type: String,
-    example: '27',
-    description: 'DDD do cliente',
-    required: true,
-  })
-  // @IsNumberString()
-  // @MinLength(2)
-  // @MaxLength(2)
-  ddd: string;
-
   @ApiProperty({
     type: String,
     example: '32426141',
