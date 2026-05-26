@@ -57,6 +57,8 @@ export class ClienteController {
   @ApiCreatedResponse({ type: ClienteResponseDto })
   createByAi(@Req() req: Request, @Body() body: CreateClienteByAiDto) {
 
+    console.log(body);
+
     function formatarTelefone(numero: string) {
       // Remove qualquer caractere que não seja número
       const somenteNumeros = numero.replace(/\D/g, "");
@@ -75,6 +77,8 @@ export class ClienteController {
         telefone_principal
       };
     }
+
+    console.log(formatarTelefone(body.telefone_principal));
 
     const createClienteDto: CreateClienteDto = {
       usuario: body.usuario,
