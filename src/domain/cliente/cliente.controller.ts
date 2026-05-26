@@ -80,14 +80,18 @@ export class ClienteController {
 
     console.log(formatarTelefone(body.telefone_principal));
 
+    const { ddd, telefone_principal } = formatarTelefone(body.telefone_principal);
+
     const createClienteDto: CreateClienteDto = {
       usuario: body.usuario,
       origem: "IA",
       possivel_cliente: true,
       nome: body.nome,
       cnpj: body.cnpj,
-      ...formatarTelefone(body.telefone_principal),
+      ddd,
+      telefone_principal,
       email: "nao-informado@email.com",
+      telefones: [{ ddd, numero: telefone_principal }],
       endereco: {
         uf: `${body.endereco.uf}` as EstadosDoBrasilSigla,
         localidade: `${body.endereco.localidade}`,
