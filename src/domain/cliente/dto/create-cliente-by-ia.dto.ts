@@ -56,7 +56,7 @@ export class CreateClienteByAiDto {
 
   @ApiProperty({
     type: String,
-    example: '32426141',
+    example: '552732426141',
     description: 'Telefone Principal',
     required: true,
   })
