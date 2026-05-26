@@ -75,13 +75,13 @@ export class ClienteService extends BaseService {
       })
 
       // cria telefones
-      if (createClienteDto.telefones.length > 0) {
-        const telefones = await Promise.all(createClienteDto.telefones.map(async (numero) => {
-          return await this.telefoneService.create(systemId, { ddd: numero.ddd, numero: numero.numero })
-        }))
+      // if (createClienteDto.telefones.length > 0) {
+      //   const telefones = await Promise.all(createClienteDto.telefones.map(async (numero) => {
+      //     return await this.telefoneService.create(systemId, { ddd: numero.ddd, numero: numero.numero })
+      //   }))
 
-        cliente.telefones = telefones
-      }
+      //   cliente.telefones = telefones
+      // }
 
       // cria endereco
       if (createClienteDto.endereco) {

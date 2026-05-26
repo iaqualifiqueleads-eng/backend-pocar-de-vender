@@ -78,8 +78,6 @@ export class ClienteController {
       };
     }
 
-    console.log(formatarTelefone(body.telefone_principal));
-
     const { ddd, telefone_principal } = formatarTelefone(body.telefone_principal);
 
     const createClienteDto: CreateClienteDto = {
