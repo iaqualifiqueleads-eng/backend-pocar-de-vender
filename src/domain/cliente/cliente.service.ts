@@ -57,7 +57,6 @@ export class ClienteService extends BaseService {
 
   async create(systemId: string, createClienteDto: CreateClienteDto): Promise<Cliente> {
     try {
-
       const entityManager = this.loadEntityManager(systemId);
       const usuario = await this.usuarioService.findOne(systemId, { id: createClienteDto.usuario })
 
@@ -94,6 +93,7 @@ export class ClienteService extends BaseService {
 
       return clientes
     } catch (error) {
+      console.log(error);
       throw new BadRequestException(error.message);
     }
   }
