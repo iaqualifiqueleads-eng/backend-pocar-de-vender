@@ -86,11 +86,11 @@ export class ClienteController {
       email: "nao-informado@email.com",
       endereco: {
         uf: `${body.endereco.uf}` as EstadosDoBrasilSigla,
-        localidade: body.endereco.localidade,
-        bairro: body.endereco.bairro,
-        logradouro: body.endereco.logradouro,
-        complemento: body.endereco.complemento,
-        cep: body.endereco.cep,
+        localidade: `${body.endereco.localidade}`,
+        bairro: `${body.endereco.bairro}`,
+        logradouro: `${body.endereco.logradouro}`,
+        complemento: `${body.endereco.complemento}`,
+        cep: `${body.endereco.cep}`,
       }
     }
 
