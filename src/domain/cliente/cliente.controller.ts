@@ -52,7 +52,7 @@ export class ClienteController {
     return this.clienteService.create(req["systemId"], createClienteDto);
   }
 
-  @Post('create-by-ai')
+  @Post('ai/create-by-ai')
   @ApiOperation({ summary: 'Criar Cliente' })
   @ApiCreatedResponse({ type: ClienteResponseDto })
   createByAi(@Req() req: Request, @Body() body: CreateClienteByAiDto) {
