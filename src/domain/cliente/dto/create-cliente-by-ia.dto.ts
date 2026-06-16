@@ -30,10 +30,6 @@ export class CreateClienteByAiDto {
   @IsOptional()
   endereco?: CreateEnderecoDto;
 
-  @ApiProperty({ type: Boolean, example: true, description: 'Possível Cliente', required: true })
-  @IsBoolean()
-  possivel_cliente: boolean;
-
   @ApiProperty({
     type: String,
     example: 'Cliente A',
