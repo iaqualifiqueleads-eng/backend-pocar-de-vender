@@ -55,6 +55,12 @@ export class ClienteController {
   @Post('ai/create-by-ai')
   @ApiOperation({ summary: 'Criar Cliente' })
   @ApiCreatedResponse({ type: ClienteResponseDto })
+  @ApiHeader({
+    name: 'x-system-id',
+    example: 'pocar_de_vender_0',
+    description: 'ID do sistema',
+    required: true,
+  })
   createByAi(@Req() req: Request, @Body() body: CreateClienteByAiDto) {
 
     console.log(body);
