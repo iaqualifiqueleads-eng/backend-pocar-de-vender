@@ -36,7 +36,6 @@ export class CreateClienteByAiDto {
     description: 'Nome do cliente',
   })
   @IsString()
-  @IsNotEmpty()
   nome: string;
 
   @ApiProperty({

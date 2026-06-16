@@ -107,7 +107,7 @@ export class ClienteController {
     }
 
 
-    return this.clienteService.create(req["systemId"], createClienteDto);
+    return this.clienteService.create('pocard00_v2', createClienteDto);
   }
 
   @Post('create-many')
