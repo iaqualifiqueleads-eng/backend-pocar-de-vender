@@ -31,21 +31,21 @@ import { EstadosDoBrasilSigla } from '../shared/enums/estados-do-brasil-sigla.en
 
 @Controller('cliente')
 @ApiTags('Cliente')
-@UseGuards(SystemIdGuard)
-@UseGuards(JwtGuard)
-@ApiBearerAuth('JWT-auth')
-@ApiHeader({
-  name: 'x-system-id',
-  example: 'pocar_de_vender_0',
-  description: 'ID do sistema',
-  required: true,
-})
 export class ClienteController {
   constructor(private readonly clienteService: ClienteService) { }
 
   private logger = new Logger;
 
   @Post()
+  @UseGuards(SystemIdGuard)
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-system-id',
+    example: 'pocar_de_vender_0',
+    description: 'ID do sistema',
+    required: true,
+  })
   @ApiOperation({ summary: 'Criar Cliente' })
   @ApiCreatedResponse({ type: ClienteResponseDto })
   create(@Req() req: Request, @Body() createClienteDto: CreateClienteDto) {
@@ -105,6 +105,15 @@ export class ClienteController {
   }
 
   @Post('create-many')
+  @UseGuards(SystemIdGuard)
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-system-id',
+    example: 'pocar_de_vender_0',
+    description: 'ID do sistema',
+    required: true,
+  })
   @ApiOperation({ summary: 'Criar Varios Clientes' })
   @ApiCreatedResponse({ type: String })
   createMany(@Req() req: Request, @Body() createClienteDto: CreateManyClientesDto) {
@@ -112,6 +121,15 @@ export class ClienteController {
   }
 
   @Get()
+  @UseGuards(SystemIdGuard)
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-system-id',
+    example: 'pocar_de_vender_0',
+    description: 'ID do sistema',
+    required: true,
+  })
   @ApiOperation({ summary: 'Lista de Clientes' })
   @ApiOkResponse({ type: ClienteResponseDto, isArray: true })
   findAll(
@@ -130,6 +148,15 @@ export class ClienteController {
   }
 
   @Get(':id')
+  @UseGuards(SystemIdGuard)
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-system-id',
+    example: 'pocar_de_vender_0',
+    description: 'ID do sistema',
+    required: true,
+  })
   @ApiOperation({ summary: 'Recupera Cliente pelo ID' })
   @ApiOkResponse({ type: ClienteResponseDto })
   findOne(@Req() req: Request, @Param('id') id: string) {
@@ -137,6 +164,15 @@ export class ClienteController {
   }
 
   @Get("/clietes/por-usuarios-ids")
+  @UseGuards(SystemIdGuard)
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-system-id',
+    example: 'pocar_de_vender_0',
+    description: 'ID do sistema',
+    required: true,
+  })
   @ApiOperation({ summary: 'Recupera Cliente pelo ID' })
   @ApiOkResponse({ type: ClienteResponseDto })
   findAllByUsuariosIds(@Req() req: Request, @Query() { ids }: IdsQueryDto) {
@@ -148,6 +184,15 @@ export class ClienteController {
   }
 
   @Get("/update-all-clientes-to-possivel-cliente-false/update-all-clientes-to-possivel-cliente-false")
+  @UseGuards(SystemIdGuard)
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-system-id',
+    example: 'pocar_de_vender_0',
+    description: 'ID do sistema',
+    required: true,
+  })
   @ApiOperation({ summary: 'Atualiza Cliente' })
   @ApiOkResponse({ type: String })
   updateAllClientesToPossivelClienteFalse(@Req() req: Request) {
@@ -155,6 +200,15 @@ export class ClienteController {
   }
 
   @Patch(':id')
+  @UseGuards(SystemIdGuard)
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-system-id',
+    example: 'pocar_de_vender_0',
+    description: 'ID do sistema',
+    required: true,
+  })
   @ApiOperation({ summary: 'Atualiza Cliente' })
   @ApiOkResponse({ type: ClienteResponseDto })
   update(@Req() req: Request, @Param('id') id: string, @Body() updateClienteDto: UpdateClienteDto) {
@@ -162,6 +216,15 @@ export class ClienteController {
   }
 
   @Patch('/tranferir/usuario')
+  @UseGuards(SystemIdGuard)
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-system-id',
+    example: 'pocar_de_vender_0',
+    description: 'ID do sistema',
+    required: true,
+  })
   @ApiOperation({ summary: 'transferir Clientes' })
   @ApiOkResponse({ type: String })
   tranferirClientes(@Req() req: Request, @Body() clienteTransferirDto: ClienteTransferirDto) {
@@ -169,6 +232,15 @@ export class ClienteController {
   }
 
   @Delete(':id')
+  @UseGuards(SystemIdGuard)
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-system-id',
+    example: 'pocar_de_vender_0',
+    description: 'ID do sistema',
+    required: true,
+  })
   @ApiOperation({ summary: "Remove cliente" })
   @ApiOkResponse({ type: String })
   remove(@Req() req: Request, @Param('id') id: string) {
@@ -176,62 +248,170 @@ export class ClienteController {
   }
 
   @Get("123/delete-for-error")
+  @UseGuards(SystemIdGuard)
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-system-id',
+    example: 'pocar_de_vender_0',
+    description: 'ID do sistema',
+    required: true,
+  })
   deleteForError(@Req() req: Request) {
     return this.clienteService.deleteForError(req["systemId"]);
   }
 
   @Post("update-telefones")
+  @UseGuards(SystemIdGuard)
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-system-id',
+    example: 'pocar_de_vender_0',
+    description: 'ID do sistema',
+    required: true,
+  })
   async updateTelefone(@Req() req: Request, @Body() data: DataToUpdate) {
     return this.clienteService.updateTelefone(req["systemId"], data)
   }
 
   @Post("create-telefones")
+  @UseGuards(SystemIdGuard)
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-system-id',
+    example: 'pocar_de_vender_0',
+    description: 'ID do sistema',
+    required: true,
+  })
   async createTelefones(@Req() req: Request, @Body() data: DataToCreateTelefones) {
     return this.clienteService.createTelefones(req["systemId"], data)
   }
 
   @Get("clientes-sem-telefone/clietes-sem-telefone")
+  @UseGuards(SystemIdGuard)
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-system-id',
+    example: 'pocar_de_vender_0',
+    description: 'ID do sistema',
+    required: true,
+  })
   async clientesSemTelefone(@Req() req: Request) {
     return this.clienteService.clientesSemTelefone(req["systemId"])
   }
 
   @Post("update-clientes/na-base")
+  @UseGuards(SystemIdGuard)
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-system-id',
+    example: 'pocar_de_vender_0',
+    description: 'ID do sistema',
+    required: true,
+  })
   async updateclientesNaBase(@Req() req: Request, @Body() data: ListaCnpj) {
     return this.clienteService.updateclientesNaBase(req["systemId"], data)
   }
 
   @Post("update-clientes-origem/gislene")
+  @UseGuards(SystemIdGuard)
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-system-id',
+    example: 'pocar_de_vender_0',
+    description: 'ID do sistema',
+    required: true,
+  })
   async updateOrigemCliente(@Req() req: Request, @Body() data: ListaCnpj) {
     return this.clienteService.updateOrigemCliente(req["systemId"], data)
   }
 
   @Post("delete-clientes/delete-many")
+  @UseGuards(SystemIdGuard)
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-system-id',
+    example: 'pocar_de_vender_0',
+    description: 'ID do sistema',
+    required: true,
+  })
   async deleteMany(@Req() req: Request, @Body() data: ListaCnpj) {
     return this.clienteService.deleteMany(req["systemId"], data)
   }
 
   //////////////////////////////////////////////////////
   @Post('update/cliente/usuario/cnpj')
+  @UseGuards(SystemIdGuard)
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-system-id',
+    example: 'pocar_de_vender_0',
+    description: 'ID do sistema',
+    required: true,
+  })
   async updateUsuariosByCNPJ(@Req() req: Request, @Body() data: { "rotulos_de_linha": string, "vendedor": string, "cnpj": string, "origem": string }[]) {
     return this.clienteService.updateUsuariosByCNPJ(req["systemId"], data)
   }
 
   @Post('update/cliente/usuario/nome')
+  @UseGuards(SystemIdGuard)
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-system-id',
+    example: 'pocar_de_vender_0',
+    description: 'ID do sistema',
+    required: true,
+  })
   async updateUsuariosByNome(@Req() req: Request, @Body() data: { "rotulos_de_linha": string, "vendedor": string, "cnpj": string, "origem": string }[]) {
     return this.clienteService.updateUsuariosByNome(req["systemId"], data)
   }
 
   @Post('update/cliente/origem/by/nome')
+  @UseGuards(SystemIdGuard)
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-system-id',
+    example: 'pocar_de_vender_0',
+    description: 'ID do sistema',
+    required: true,
+  })
   async updateOrigemByNome(@Req() req: Request, @Body() data: { "rotulos_de_linha": string, "vendedor": string, "cnpj": string, "origem": string }[]) {
     return this.clienteService.updateOrigemByNome(req["systemId"], data)
   }
 
   @Post('update/cliente/origem/by/cnpj')
+  @UseGuards(SystemIdGuard)
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-system-id',
+    example: 'pocar_de_vender_0',
+    description: 'ID do sistema',
+    required: true,
+  })
   async updateOrigemByCNPJ(@Req() req: Request, @Body() data: { "rotulos_de_linha": string, "vendedor": string, "cnpj": string, "origem": string }[]) {
     return this.clienteService.updateOrigemByCNPJ(req["systemId"], data)
   }
 
   @Post('cadastrar/nome/cnpj/origem/usuario')
+  @UseGuards(SystemIdGuard)
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-system-id',
+    example: 'pocar_de_vender_0',
+    description: 'ID do sistema',
+    required: true,
+  })
   async cadastrarVarios(@Req() req: Request, @Body() data: { "rotulos_de_linha": string, "vendedor": string, "cnpj": string, "origem": string }[]) {
     return this.clienteService.cadastrarVarios(req['systemId'], data)
   }
