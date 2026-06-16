@@ -89,7 +89,7 @@ export class ClienteController {
       ddd,
       telefone_principal,
       email: "nao-informado@email.com",
-      telefones: [{ ddd, numero: telefone_principal }],
+      telefones: [],
       endereco: {
         uf: `${body.endereco.uf}` as EstadosDoBrasilSigla,
         localidade: `${body.endereco.localidade}`,
