@@ -10,6 +10,7 @@ import {
   Req,
   UseGuards,
   Logger,
+  BadRequestException,
 } from '@nestjs/common';
 import { ClienteService, DataToUpdate } from './cliente.service';
 import { CreateClienteDto } from './dto/create-cliente.dto';
@@ -138,19 +139,28 @@ export class ClienteController {
   })
   @ApiOperation({ summary: 'Lista de Clientes' })
   @ApiOkResponse({ type: ClienteResponseDto, isArray: true })
-  findAll(
+  async findAll(
     @Req() req: Request,
-    @Query() { page = 1, limit = 10000 }: PaginationDto,
+    @Query() { page = 1, limit = 100000 }: PaginationDto,
     @Query() { usuarioId, contatado }: ClienteQueryDto,
   ) {
     this.logger.verbose("[Cliente Controller][FindAll]");
 
-    return this.clienteService.findAll(req["systemId"], {
-      page,
-      limit,
-      usuarioId,
-      contatado
-    });
+    try {
+      const clientes = await this.clienteService.findAll('pocard00_v2', {
+        page,
+        limit,
+        usuarioId,
+        contatado
+      });
+      
+      console.log(clientes.length);
+      
+      return clientes;
+    } catch (error) {
+      console.log(error);
+      throw new BadRequestException('Erro ao buscar clientes');
+    }
   }
 
   @Get(':id')
