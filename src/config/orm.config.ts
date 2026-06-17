@@ -22,7 +22,6 @@ export default registerAs('orm', () => {
       extra: {
         connectionLimit: 5,
         connectTimeout: 30000,
-        acquireTimeout: 30000,
         waitForConnections: true,
         enableKeepAlive: true,
         keepAliveInitialDelay: 10000,
