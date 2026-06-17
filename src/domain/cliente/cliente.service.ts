@@ -93,7 +93,7 @@ export class ClienteService extends BaseService {
 
       return clientes
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       throw new BadRequestException(error.message);
     }
   }
@@ -446,7 +446,7 @@ export class ClienteService extends BaseService {
     const clientes_filtrados = clientes.filter((x) => !!x)
 
     return await Promise.all(clientes_filtrados.map(async (cli) => {
-      console.log('[] => ', `${cli.id}`);
+      // console.log('[] => ', `${cli.id}`);
 
       return await entityManager.update(Cliente, `${cli.id}`, {
         na_base: true
@@ -468,7 +468,7 @@ export class ClienteService extends BaseService {
 
 
     return await Promise.all(clientes_filtrados.map(async (cli) => {
-      console.log('[origem gislene] => ', `${cli.cnpj}`);
+      // console.log('[origem gislene] => ', `${cli.cnpj}`);
 
       return await entityManager.update(Cliente, `${cli.id}`, {
         origem: "gislene"
@@ -485,7 +485,7 @@ export class ClienteService extends BaseService {
       return await entityManager.softDelete(Cliente, id);
     }))
 
-    console.log('[results.length] => ', results.length);
+    // console.log('[results.length] => ', results.length);
     return results.length
   }
 
@@ -494,7 +494,7 @@ export class ClienteService extends BaseService {
   async updateUsuariosByCNPJ(systemId: string, data: { "rotulos_de_linha": string, "vendedor": string, "cnpj": string, "origem": string }[]) {
     const entityManager = this.loadEntityManager(systemId);
 
-    console.log('[data.length] => ', data.length);
+    // console.log('[data.length] => ', data.length);
     const log_erros: any[] = []
 
     const results = await Promise.all(data.map(async (cliente) => {
@@ -516,7 +516,7 @@ export class ClienteService extends BaseService {
       })
     }))
 
-    console.log('[] => ', log_erros);
+    // console.log('[] => ', log_erros);
 
     return results
   }
@@ -524,7 +524,7 @@ export class ClienteService extends BaseService {
   async updateUsuariosByNome(systemId: string, data: { "rotulos_de_linha": string, "vendedor": string, "cnpj": string, "origem": string }[]) {
     const entityManager = this.loadEntityManager(systemId);
 
-    console.log('[data.length] => ', data.length);
+    // console.log('[data.length] => ', data.length);
     const log_erros: any[] = []
 
     const results = await Promise.all(data.map(async (cliente) => {
@@ -554,8 +554,8 @@ export class ClienteService extends BaseService {
   async updateOrigemByNome(systemId: string, data: { "rotulos_de_linha": string, "vendedor": string, "cnpj": string, "origem": string }[]) {
     const entityManager = this.loadEntityManager(systemId);
 
-    console.log('[updateOrigemByNome] => ');
-    console.log('[data.length] => ', data.length);
+    // console.log('[updateOrigemByNome] => ');
+    // console.log('[data.length] => ', data.length);
 
     const results = await Promise.all(data.map(async (cliente) => {
       return entityManager.update(Cliente, { nome: cliente.rotulos_de_linha }, {
@@ -569,8 +569,8 @@ export class ClienteService extends BaseService {
   async updateOrigemByCNPJ(systemId: string, data: { "rotulos_de_linha": string, "vendedor": string, "cnpj": string, "origem": string }[]) {
     const entityManager = this.loadEntityManager(systemId);
 
-    console.log('[updateOrigemByCNPJ] => ');
-    console.log('[data.length] => ', data.length);
+    // console.log('[updateOrigemByCNPJ] => ');
+    // console.log('[data.length] => ', data.length);
 
     const results = await Promise.all(data.map(async (cliente) => {
       return entityManager.update(Cliente, { cnpj: cliente.cnpj }, {
@@ -584,8 +584,8 @@ export class ClienteService extends BaseService {
   async cadastrarVarios(systemId: string, data: { "rotulos_de_linha": string, "vendedor": string, "cnpj": string, "origem": string }[]) {
     const entityManager = this.loadEntityManager(systemId);
 
-    console.log('[cadastrarVarios] => ');
-    console.log('[data.length] => ', data.length);
+    // console.log('[cadastrarVarios] => ');
+    // console.log('[data.length] => ', data.length);
 
     const results = await Promise.all(data.map(async (d) => {
       const usuario = await entityManager.findOneBy(Usuario, { id: d.vendedor });
@@ -608,7 +608,7 @@ export class ClienteService extends BaseService {
       return await entityManager.save(Cliente, novo_cliente)
     }))
 
-    console.log('[results] => ', results);
+    // console.log('[results] => ', results);
     return results
   }
 

@@ -251,7 +251,7 @@ export class ContatoService extends BaseService {
       };
     }
 
-    console.log('[query] => ', query);
+    // console.log('[query] => ', query);
 
     return await entityManager.find(Contato, {
       where: query,
@@ -319,7 +319,7 @@ export class ContatoService extends BaseService {
       relations: ['cliente'],
     });
 
-    console.log('[] => ', contatos[0]);
+    // console.log('[] => ', contatos[0]);
 
     let clientes_contatos_filtrado = [];
     const ids_ocorrencias_a_filtrar = ['8', '17733364004864']; // ids das ocorrências que você deseja filtrar
@@ -338,7 +338,7 @@ export class ContatoService extends BaseService {
 
     const idsSemRepeticao = [...new Set(clientes_contatos_filtrado)];
 
-    console.log('[idsSemRepeticao.length] => ', idsSemRepeticao.length);
+    // console.log('[idsSemRepeticao.length] => ', idsSemRepeticao.length);
 
     fs.writeFileSync('fs/ids_clientes_ocorrencias.txt', idsSemRepeticao.join(','), 'utf8')
 

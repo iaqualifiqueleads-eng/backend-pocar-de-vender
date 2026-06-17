@@ -64,7 +64,7 @@ export class ClienteController {
   @ApiCreatedResponse({ type: ClienteResponseDto })
   createByAi(@Req() req: Request, @Body() body: CreateClienteByAiDto) {
 
-    console.log(body);
+    // console.log(body);
 
     function formatarTelefone(numero: string) {
       // Remove qualquer caractere que não seja número
@@ -154,11 +154,11 @@ export class ClienteController {
         contatado
       });
       
-      console.log(clientes.length);
+      // console.log(clientes.length);
       
       return clientes;
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       throw new BadRequestException('Erro ao buscar clientes');
     }
   }
