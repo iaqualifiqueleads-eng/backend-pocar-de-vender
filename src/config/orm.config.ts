@@ -16,9 +16,17 @@ export default registerAs('orm', () => {
       username: env.database.userName,
       password: env.database.password,
       database: systemId,
-      synchronize: true,
+      synchronize: env.database.synchronize,
       entities: [__dirname + '/../**/*.entity{.ts,.js}'],
       migrations: ['dist/db/migrations/*.js'],
+      extra: {
+        connectionLimit: 5,
+        connectTimeout: 30000,
+        acquireTimeout: 30000,
+        waitForConnections: true,
+        enableKeepAlive: true,
+        keepAliveInitialDelay: 10000,
+      },
     };
   });
 
