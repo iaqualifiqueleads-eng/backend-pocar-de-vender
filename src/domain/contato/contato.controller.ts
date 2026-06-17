@@ -117,21 +117,36 @@ export class ContatoController {
     @Query() { from, to }: BetweenQueryDto,
     @Query() { na_base } : NaBaseQueryDto,
   ) {
-    // 👇 conversão segura de string → boolean
-    let naBaseParsed: boolean | undefined = undefined;
+    // // 👇 conversão segura de string → boolean
+    // let naBaseParsed: boolean | undefined = undefined;
 
-    if (na_base !== undefined) {
-      naBaseParsed = na_base === 'true';
-    }
+    // if (na_base !== undefined) {
+    //   naBaseParsed = na_base === 'true';
+    // }
 
-    console.log('[na_base] => ', na_base, naBaseParsed);
+    // console.log('[na_base] => ', na_base, naBaseParsed);
 
-    return this.contatoService.relatorioDashboard(req["systemId"], {
-      usuariosIds: ids ? ids?.split(',') : [req.user["sub"]],
+    // return this.contatoService.relatorioDashboard(req["systemId"], {
+    //   usuariosIds: ids ? ids?.split(',') : [req.user["sub"]],
+    //   from,
+    //   to,
+    //   na_base: naBaseParsed,
+    // });
+
+    const filtros: any = {
+      usuariosIds: ids ? ids.split(',') : [req.user["sub"]],
       from,
       to,
-      na_base: naBaseParsed,
-    });
+    };
+    
+    if (na_base !== undefined) {
+      filtros.na_base = na_base === 'true';
+    }
+    
+    return this.contatoService.relatorioDashboard(
+      req["systemId"],
+      filtros,
+    );
   }
 
   @Delete(':id')
