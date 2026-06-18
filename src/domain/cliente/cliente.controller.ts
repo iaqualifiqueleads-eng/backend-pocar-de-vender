@@ -89,13 +89,13 @@ export class ClienteController {
 
     const createClienteDto: CreateClienteDto = {
       usuario: body.usuario,
-      origem: "IA",
+      origem: body.origem ?? "",
       possivel_cliente: true,
       nome: body.nome,
       cnpj: body.cnpj,
       ddd,
       telefone_principal,
-      email: "nao-informado@email.com",
+      email: "",
       telefones: [],
       endereco: {
         uf: `${body.endereco.uf}` as EstadosDoBrasilSigla,
