@@ -13,6 +13,7 @@ import { Usuario } from 'src/domain/usuario/entities/usuario.entity';
 import { env } from 'src/config/env.config';
 import { ChangePasswordDto } from './dto/change-pasword.dto';
 import { LoginResponseDto } from './dto/login.response.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -50,6 +51,28 @@ export class AuthService {
     return {
       access_token: this.createToken({ usuario, systemId }),
     };
+  }
+
+  async resetPassword(systemId: string, resetPasswordDto: ResetPasswordDto) {
+    const usuario = await this.usuariosService.findOne(systemId,
+      {
+        id: resetPasswordDto.id,
+      }
+    );
+    if (!usuario) throw new NotFoundException('Usuário não encontrado.');
+
+    await this.usuariosService.updatePassword(systemId,
+      usuario.id,
+      "123456",
+    );
+
+    return await this.signIn({
+      systemId,
+      singinAuthDto: {
+        email: usuario.email,
+        senha: "123456",
+      }
+    });
   }
 
   async changePassword(systemId: string, changePasswordDto: ChangePasswordDto): Promise<LoginResponseDto> {
