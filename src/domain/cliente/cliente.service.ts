@@ -150,26 +150,28 @@ export class ClienteService extends BaseService {
       const totalSize = createClientesDto.clientes.length;
       const batchSize = 5;
 
-      let clietes_salvos: Cliente[] = [];
+      await entityManager.transaction(async (manager) => {
+        const clientes_salvos: Cliente[] = [];
 
-      for (let i = 0; i < totalSize; i += batchSize) {
-        const batchClientes = createClientesDto.clientes.slice(i, i + batchSize);
-        for await (const batch of this.createBatch(systemId, batchClientes.length, batchClientes)) {
-          const clientes = await entityManager.save(Cliente, batch);
-          clietes_salvos.push(...clientes);
+        for (let i = 0; i < totalSize; i += batchSize) {
+          const batchClientes = createClientesDto.clientes.slice(i, i + batchSize);
+          for await (const batch of this.createBatch(systemId, batchClientes.length, batchClientes)) {
+            const clientes = await manager.save(Cliente, batch);
+            clientes_salvos.push(...clientes);
+          }
         }
-      }
 
-      for await (const cliente of clietes_salvos) {
-        if (cliente.proximo_contato) {
-          await entityManager.save(Agendamento, entityManager.create(Agendamento, {
-            cliente: cliente,
-            usuario: cliente.usuario,
-            date: cliente.proximo_contato.toString(),
-            time: cliente.proximo_contato ? new Date(cliente.proximo_contato).toISOString().slice(11, 5) : "00:00",
-          }))
+        for (const cliente of clientes_salvos) {
+          if (cliente.proximo_contato) {
+            await manager.save(Agendamento, manager.create(Agendamento, {
+              cliente: cliente,
+              usuario: cliente.usuario,
+              date: cliente.proximo_contato.toString(),
+              time: cliente.proximo_contato ? new Date(cliente.proximo_contato).toISOString().slice(11, 5) : "00:00",
+            }))
+          }
         }
-      }
+      });
 
       return "Clientes criados com sucesso.";
     } catch (error) {

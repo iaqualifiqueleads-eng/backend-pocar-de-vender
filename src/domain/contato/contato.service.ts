@@ -84,9 +84,7 @@ export class ContatoService extends BaseService {
 
     if (createContatoDto.nao_retornar === true) {
       const agendamentos = await this.agendamentoService.findAll(systemId, { clienteId: createContatoDto.cliente });
-      agendamentos.forEach(async (contato) => {
-        await this.agendamentoService.remove(systemId, contato.id);
-      })
+      await Promise.all(agendamentos.map((contato) => this.agendamentoService.remove(systemId, contato.id)));
     }
 
     const primeiro_contato = (cliente.primeiro_contato ? null : { primeiro_contato: new Date() });
