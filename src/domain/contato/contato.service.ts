@@ -119,6 +119,14 @@ export class ContatoService extends BaseService {
       duracao_segundos: calculateIntervalToSeconds(new Date(contato.inicio), new Date(contato.fim))
     })
 
+    const ocorrenciaIds = ocorrencias.map(o => o.id);
+    const atualizacaoCliente: Partial<Cliente> = {};
+    if (ocorrenciaIds.includes('1')) atualizacaoCliente.estocado = true;
+    if (ocorrenciaIds.includes('6')) atualizacaoCliente.prefere_fornecedor_atual = true;
+    if (Object.keys(atualizacaoCliente).length > 0) {
+      await entityManager.update(Cliente, createContatoDto.cliente, atualizacaoCliente);
+    }
+
     return contatoCriado
   }
 
@@ -310,6 +318,105 @@ export class ContatoService extends BaseService {
 
 
   // gera um arquivo txt com os ids dos clientes de acordo com os ids de ocorrencia
+  async getMetricas(systemId: string, {
+    usuariosIds,
+    from,
+    to,
+    na_base,
+  }: { usuariosIds?: string[]; na_base?: boolean } & BetweenQueryDto) {
+    const entityManager = this.loadEntityManager(systemId);
+
+    const fromDate = from ? new Date(from) : subWeeks(new Date(), 1);
+    const toDate = to ? addDays(new Date(to), 1) : new Date();
+
+    let contatosQuery: any = {
+      createdAt: Between(fromDate, toDate),
+    };
+    if (usuariosIds?.length) {
+      contatosQuery.usuario = usuariosIds.map((id) => ({ id }));
+    }
+    if (typeof na_base === 'boolean') {
+      contatosQuery.cliente = { na_base };
+    }
+
+    const contatos = await entityManager.find(Contato, {
+      where: contatosQuery,
+      relations: ['cliente', 'usuario'],
+    });
+
+    let clientesQuery: any = {};
+    if (usuariosIds?.length) {
+      clientesQuery.usuario = usuariosIds.map((id) => ({ id }));
+    }
+    if (typeof na_base === 'boolean') {
+      clientesQuery.na_base = na_base;
+    }
+    const clientes = await entityManager.find(Cliente, { where: clientesQuery });
+
+    // clientes únicos dentro dos contatos (o mais antigo por cliente)
+    const clientesUnicosMapa = new Map<string, typeof contatos[0]>();
+    contatos.filter(c => c.cliente != null).forEach(c => {
+      const existente = clientesUnicosMapa.get(c.cliente.id);
+      if (!existente || new Date(c.createdAt) < new Date(existente.createdAt)) {
+        clientesUnicosMapa.set(c.cliente.id, c);
+      }
+    });
+
+    let primeiro_contato = 0;
+    if (from && to) {
+      const rangeFrom = new Date(from);
+      const rangeTo = new Date(to);
+      clientesUnicosMapa.forEach((contato) => {
+        if (contato.cliente?.primeiro_contato) {
+          const d = new Date(contato.cliente.primeiro_contato);
+          if (d >= rangeFrom && d <= rangeTo) primeiro_contato++;
+        }
+      });
+    }
+
+    // por ocorrência
+    const ocorrenciaMap = new Map<string, { nome: string; contatos: typeof contatos }>();
+    contatos.forEach(contato => {
+      if (contato.ocorrencias?.length) {
+        const oco = contato.ocorrencias[0];
+        if (!ocorrenciaMap.has(oco.id)) {
+          ocorrenciaMap.set(oco.id, { nome: oco.nome, contatos: [] });
+        }
+        ocorrenciaMap.get(oco.id).contatos.push(contato);
+      }
+    });
+
+    const por_ocorrencia = Array.from(ocorrenciaMap.entries())
+      .sort(([a], [b]) => Number(a) - Number(b))
+      .map(([id, { nome, contatos: contatosOco }]) => {
+        const duracao_total = contatosOco.reduce((sum, c) => {
+          if (!c.inicio || !c.fim) return sum;
+          return sum + calculateIntervalToSeconds(new Date(c.inicio), new Date(c.fim));
+        }, 0);
+        const clientes_unicos = new Set(
+          contatosOco.filter(c => c.cliente).map(c => c.cliente.id)
+        ).size;
+        return {
+          id,
+          nome,
+          quantidade_contatos: contatosOco.length,
+          clientes_unicos,
+          duracao_total_em_segundos: duracao_total,
+          media_em_segundos: contatosOco.length > 0 ? duracao_total / contatosOco.length : 0,
+        };
+      });
+
+    return {
+      contatos: contatos.length,
+      contatados: clientesUnicosMapa.size,
+      total_clientes: clientes.length,
+      primeiro_contato,
+      nao_contatados: clientes.filter(c => !c.primeiro_contato).length,
+      possiveis_clientes: clientes.filter(c => c.possivel_cliente === true).length,
+      por_ocorrencia,
+    };
+  }
+
   async findAllTemp(systemId: string) {
     const entityManager = this.loadEntityManager(systemId);
 

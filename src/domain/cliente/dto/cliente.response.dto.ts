@@ -53,6 +53,12 @@ export class ClienteBaseResponse extends BaseResponseDto {
 
   @ApiProperty({ type: String, nullable: true })
   obs: string | null;
+
+  @ApiProperty({ type: Boolean })
+  estocado: boolean;
+
+  @ApiProperty({ type: Boolean })
+  prefere_fornecedor_atual: boolean;
 }
 
 export class ClienteResponseDto extends ClienteBaseResponse {

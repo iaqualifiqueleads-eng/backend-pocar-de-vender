@@ -201,6 +201,16 @@ export class UpdateClienteDto {
   @IsOptional()
   concorrente?: string;
 
+  @ApiProperty({ type: Boolean, example: false, description: 'Cliente estocado', required: false })
+  @IsBoolean()
+  @IsOptional()
+  estocado?: boolean;
+
+  @ApiProperty({ type: Boolean, example: false, description: 'Prefere fornecedor atual', required: false })
+  @IsBoolean()
+  @IsOptional()
+  prefere_fornecedor_atual?: boolean;
+
   @ApiProperty({
     type: UpdateEnderecoDto,
     description: 'ID',

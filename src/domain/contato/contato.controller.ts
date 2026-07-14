@@ -15,6 +15,7 @@ import { ContatoService } from './contato.service';
 import { CreateContato } from './dto/create-contato.dto';
 import { ApiBearerAuth, ApiCreatedResponse, ApiHeader, ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ContatoResponseDto } from './dto/contato.response.dto';
+import { MetricasResponseDto } from './dto/metricas.response.dto';
 import {
   ClienteQueryDto,
   UsuarioQueryDto,
@@ -108,6 +109,26 @@ export class ContatoController {
       to,
       possivel_cliente
     });
+  }
+
+  @Get('metricas/metricas')
+  @ApiOperation({ summary: 'Retorna métricas calculadas do dashboard' })
+  @ApiOkResponse({ type: MetricasResponseDto })
+  getMetricas(
+    @Req() req: Request,
+    @Query() { ids }: IdsQueryDto,
+    @Query() { from, to }: BetweenQueryDto,
+    @Query() { na_base }: NaBaseQueryDto,
+  ) {
+    const filtros: any = {
+      usuariosIds: ids ? ids.split(',') : [req.user['sub']],
+      from,
+      to,
+    };
+    if (na_base !== undefined) {
+      filtros.na_base = na_base === 'true';
+    }
+    return this.contatoService.getMetricas(req['systemId'], filtros);
   }
 
   @Get("relatorio/relatorio-dashboard")

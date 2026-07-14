@@ -88,6 +88,12 @@ export class Cliente extends AggregateRoot {
   @JoinColumn()
   endereco?: Endereco
 
+  @Column({ type: 'boolean', default: false })
+  estocado: boolean;
+
+  @Column({ type: 'boolean', default: false })
+  prefere_fornecedor_atual: boolean;
+
   @BeforeInsert()
   @BeforeUpdate()
   limparCnpj() {

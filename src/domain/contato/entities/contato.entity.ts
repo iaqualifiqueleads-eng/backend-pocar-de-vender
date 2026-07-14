@@ -27,8 +27,6 @@ export class Contato extends AggregateRoot {
   @Column({ type: 'varchar', nullable: true })
   observacao: string | null;
 
-
-
   @ManyToOne(() => Funil, (funil) => funil, { nullable: true, eager: true })
   funil: Funil;
 
