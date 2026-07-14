@@ -450,4 +450,44 @@ export class ContatoService extends BaseService {
     return idsSemRepeticao.length
   }
 
+  async exportCsv(systemId: string): Promise<string> {
+    const entityManager = this.loadEntityManager(systemId);
+
+    const contatos = await entityManager.find(Contato, {
+      relations: ['usuario', 'cliente', 'ocorrencias', 'funil'],
+      withDeleted: false,
+    });
+
+    const header = [
+      'id', 'inicio', 'fim', 'observacao',
+      'cliente_id', 'cliente_nome',
+      'usuario_id', 'usuario_nome',
+      'funil', 'ocorrencias',
+      'createdAt', 'updatedAt',
+    ].join(',');
+
+    const escape = (value: any) => {
+      if (value == null) return '';
+      const str = String(value).replace(/"/g, '""');
+      return str.includes(',') || str.includes('"') || str.includes('\n') ? `"${str}"` : str;
+    };
+
+    const rows = contatos.map((c) => [
+      escape(c.id),
+      escape(c.inicio),
+      escape(c.fim),
+      escape(c.observacao),
+      escape(c.cliente?.id),
+      escape(c.cliente?.nome),
+      escape(c.usuario?.id),
+      escape(c.usuario?.nome),
+      escape(c.funil?.nome ?? ''),
+      escape(c.ocorrencias?.map((o) => o.nome).join(' | ')),
+      escape(c.createdAt),
+      escape(c.updatedAt),
+    ].join(','));
+
+    return [header, ...rows].join('\n');
+  }
+
 }

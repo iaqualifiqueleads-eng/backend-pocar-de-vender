@@ -10,6 +10,7 @@ import {
   BadRequestException,
   UseGuards,
   Req,
+  Res,
 } from '@nestjs/common';
 import { ContatoService } from './contato.service';
 import { CreateContato } from './dto/create-contato.dto';
@@ -23,7 +24,7 @@ import {
 import { SystemIdGuard } from 'src/common/guards/system-id.guard';
 import { PaginationDto } from '../shared/query-dto/pagination.dto';
 import { JwtGuard } from 'src/common/guards/jwt.guard';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { IdsQueryDto } from 'src/common/dtos/ids.dto';
 import { BetweenQueryDto } from 'src/common/dtos/from-to.dto';
 import { PossivelClienteQueryDto } from './dto/query-possivel-cliente.dto';
@@ -181,5 +182,14 @@ export class ContatoController {
   @Get('temp/temp')
   async findAllTemp(@Req() req: Request) {
     return this.contatoService.findAllTemp(req["systemId"])
+  }
+
+  @Get('export/csv')
+  @ApiOperation({ summary: 'Exporta todos os contatos em CSV' })
+  async exportCsv(@Req() req: Request, @Res() res: Response) {
+    const csv = await this.contatoService.exportCsv(req['systemId']);
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="contatos.csv"');
+    res.send('﻿' + csv);
   }
 }

@@ -614,4 +614,47 @@ export class ClienteService extends BaseService {
     return results
   }
 
+  async exportCsv(systemId: string): Promise<string> {
+    const entityManager = this.loadEntityManager(systemId);
+
+    const clientes = await entityManager.find(Cliente, {
+      relations: ['usuario', 'endereco'],
+      withDeleted: false,
+    });
+
+    const header = [
+      'id', 'nome', 'cnpj', 'email', 'ddd', 'telefone_principal',
+      'possivel_cliente', 'na_base', 'estocado', 'prefere_fornecedor_atual',
+      'contato', 'contato2', 'contato3', 'concorrente', 'origem', 'tipo',
+      'obs', 'preferencia_horario', 'aniversario', 'primeiro_contato',
+      'ultimo_contato', 'proximo_contato', 'data_fundacao',
+      'endereco_cep', 'endereco_uf', 'endereco_localidade', 'endereco_bairro',
+      'endereco_logradouro', 'endereco_numero', 'endereco_complemento',
+      'usuario_id', 'usuario_nome', 'createdAt', 'updatedAt',
+    ].join(',');
+
+    const escape = (value: any) => {
+      if (value == null) return '';
+      const str = String(value).replace(/"/g, '""');
+      return str.includes(',') || str.includes('"') || str.includes('\n') ? `"${str}"` : str;
+    };
+
+    const rows = clientes.map((c) => [
+      escape(c.id), escape(c.nome), escape(c.cnpj), escape(c.email),
+      escape(c.ddd), escape(c.telefone_principal),
+      escape(c.possivel_cliente), escape(c.na_base), escape(c.estocado), escape(c.prefere_fornecedor_atual),
+      escape(c.contato), escape(c.contato2), escape(c.contato3), escape(c.concorrente),
+      escape(c.origem), escape(c.tipo), escape(c.obs), escape(c.preferencia_horario),
+      escape(c.aniversario), escape(c.primeiro_contato), escape(c.ultimo_contato),
+      escape(c.proximo_contato), escape(c.data_fundacao),
+      escape(c.endereco?.cep), escape(c.endereco?.uf), escape(c.endereco?.localidade),
+      escape(c.endereco?.bairro), escape(c.endereco?.logradouro), escape(c.endereco?.numero),
+      escape(c.endereco?.complemento),
+      escape(c.usuario?.id), escape(c.usuario?.nome),
+      escape(c.createdAt), escape(c.updatedAt),
+    ].join(','));
+
+    return [header, ...rows].join('\n');
+  }
+
 }

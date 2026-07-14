@@ -8,6 +8,7 @@ import {
   Delete,
   Query,
   Req,
+  Res,
   UseGuards,
   Logger,
   BadRequestException,
@@ -25,7 +26,7 @@ import { ClienteTransferirDto } from './dto/cliente-transferir.dto';
 import { ClienteQueryDto } from './dto/cliente.query.dto';
 import { DataToCreateTelefones } from './dto/create-telefones.dto';
 import { IdsQueryDto } from 'src/common/dtos/ids.dto';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { ListaCnpj } from './dto/lista-cnpj.dto';
 import { CreateClienteByAiDto } from './dto/create-cliente-by-ia.dto';
 import { EstadosDoBrasilSigla } from '../shared/enums/estados-do-brasil-sigla.enum';
@@ -430,5 +431,18 @@ export class ClienteController {
   })
   async cadastrarVarios(@Req() req: Request, @Body() data: { "rotulos_de_linha": string, "vendedor": string, "cnpj": string, "origem": string }[]) {
     return this.clienteService.cadastrarVarios(req['systemId'], data)
+  }
+
+  @Get('export/csv')
+  @UseGuards(SystemIdGuard)
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiHeader({ name: 'x-system-id', example: 'pocar_de_vender_0', description: 'ID do sistema', required: true })
+  @ApiOperation({ summary: 'Exporta todos os clientes em CSV' })
+  async exportCsv(@Req() req: Request, @Res() res: Response) {
+    const csv = await this.clienteService.exportCsv(req['systemId']);
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="clientes.csv"');
+    res.send('﻿' + csv);
   }
 }
