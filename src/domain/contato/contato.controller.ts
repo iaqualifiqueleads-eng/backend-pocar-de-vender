@@ -30,6 +30,7 @@ import { BetweenQueryDto } from 'src/common/dtos/from-to.dto';
 import { PossivelClienteQueryDto } from './dto/query-possivel-cliente.dto';
 import { UsuariosIdsQueryDto } from './dto/usuario-ids.dto';
 import { NaBaseQueryDto } from './dto/na_base-query.dto';
+import { ClienteFlagsQueryDto } from './dto/cliente-flags-query.dto';
 
 @Controller('contato')
 @ApiTags('Contato')
@@ -120,15 +121,16 @@ export class ContatoController {
     @Query() { ids }: IdsQueryDto,
     @Query() { from, to }: BetweenQueryDto,
     @Query() { na_base }: NaBaseQueryDto,
+    @Query() { estocado, prefere_fornecedor_atual }: ClienteFlagsQueryDto,
   ) {
     const filtros: any = {
       usuariosIds: ids ? ids.split(',') : [req.user['sub']],
       from,
       to,
     };
-    if (na_base !== undefined) {
-      filtros.na_base = na_base === 'true';
-    }
+    if (na_base !== undefined) filtros.na_base = na_base === 'true';
+    if (estocado !== undefined) filtros.estocado = estocado === 'true';
+    if (prefere_fornecedor_atual !== undefined) filtros.prefere_fornecedor_atual = prefere_fornecedor_atual === 'true';
     return this.contatoService.getMetricas(req['systemId'], filtros);
   }
 

@@ -323,11 +323,18 @@ export class ContatoService extends BaseService {
     from,
     to,
     na_base,
-  }: { usuariosIds?: string[]; na_base?: boolean } & BetweenQueryDto) {
+    estocado,
+    prefere_fornecedor_atual,
+  }: { usuariosIds?: string[]; na_base?: boolean; estocado?: boolean; prefere_fornecedor_atual?: boolean } & BetweenQueryDto) {
     const entityManager = this.loadEntityManager(systemId);
 
     const fromDate = from ? new Date(from) : subWeeks(new Date(), 1);
     const toDate = to ? addDays(new Date(to), 1) : new Date();
+
+    let clienteFilter: any = {};
+    if (typeof na_base === 'boolean') clienteFilter.na_base = na_base;
+    if (typeof estocado === 'boolean') clienteFilter.estocado = estocado;
+    if (typeof prefere_fornecedor_atual === 'boolean') clienteFilter.prefere_fornecedor_atual = prefere_fornecedor_atual;
 
     let contatosQuery: any = {
       createdAt: Between(fromDate, toDate),
@@ -335,8 +342,8 @@ export class ContatoService extends BaseService {
     if (usuariosIds?.length) {
       contatosQuery.usuario = usuariosIds.map((id) => ({ id }));
     }
-    if (typeof na_base === 'boolean') {
-      contatosQuery.cliente = { na_base };
+    if (Object.keys(clienteFilter).length > 0) {
+      contatosQuery.cliente = clienteFilter;
     }
 
     const contatos = await entityManager.find(Contato, {
@@ -348,8 +355,8 @@ export class ContatoService extends BaseService {
     if (usuariosIds?.length) {
       clientesQuery.usuario = usuariosIds.map((id) => ({ id }));
     }
-    if (typeof na_base === 'boolean') {
-      clientesQuery.na_base = na_base;
+    if (Object.keys(clienteFilter).length > 0) {
+      clientesQuery = { ...clientesQuery, ...clienteFilter };
     }
     const clientes = await entityManager.find(Cliente, { where: clientesQuery });
 
