@@ -24,7 +24,7 @@ export class Contato extends AggregateRoot {
   @Column({ type: 'datetime', nullable: true })
   fim: Date | null;
 
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ type: 'longtext', nullable: true })
   observacao: string | null;
 
   @ManyToOne(() => Funil, (funil) => funil, { nullable: true, eager: true })
