@@ -25,6 +25,7 @@ import { BaseService } from '../shared/base-service';
 import { AgendamentoService } from '../agendamento/agendamento.service';
 import { Agendamento } from '../agendamento/entities/agendamento.entity';
 import { DataToCreateTelefones } from './dto/create-telefones.dto';
+import { Contato } from '../contato/entities/contato.entity';
 
 export type DataToUpdate = {
   old_id: string,
@@ -617,10 +618,27 @@ export class ClienteService extends BaseService {
   async exportCsv(systemId: string): Promise<string> {
     const entityManager = this.loadEntityManager(systemId);
 
-    const clientes = await entityManager.find(Cliente, {
-      relations: ['usuario', 'endereco'],
-      withDeleted: false,
-    });
+    const [clientes, contatos] = await Promise.all([
+      entityManager.find(Cliente, {
+        relations: ['usuario', 'endereco'],
+        withDeleted: false,
+      }),
+      entityManager.find(Contato, {
+        relations: ['cliente', 'ocorrencias'],
+        order: { fim: 'DESC' },
+        withDeleted: false,
+      }),
+    ]);
+
+    // mapa clienteId -> nome da última ocorrência
+    const ultimaOcorrencia = new Map<string, string>();
+    for (const contato of contatos) {
+      if (!contato.cliente) continue;
+      const clienteId = String(contato.cliente.id);
+      if (!ultimaOcorrencia.has(clienteId) && contato.ocorrencias?.length > 0) {
+        ultimaOcorrencia.set(clienteId, contato.ocorrencias[0].nome);
+      }
+    }
 
     const header = [
       'id', 'nome', 'cnpj', 'email', 'ddd', 'telefone_principal',
@@ -630,7 +648,7 @@ export class ClienteService extends BaseService {
       'ultimo_contato', 'proximo_contato', 'data_fundacao',
       'endereco_cep', 'endereco_uf', 'endereco_localidade', 'endereco_bairro',
       'endereco_logradouro', 'endereco_numero', 'endereco_complemento',
-      'usuario_id', 'usuario_nome', 'createdAt', 'updatedAt',
+      'usuario_id', 'usuario_nome', 'ultima_ocorrencia', 'createdAt', 'updatedAt',
     ].join(',');
 
     const escape = (value: any) => {
@@ -651,6 +669,7 @@ export class ClienteService extends BaseService {
       escape(c.endereco?.bairro), escape(c.endereco?.logradouro), escape(c.endereco?.numero),
       escape(c.endereco?.complemento),
       escape(c.usuario?.id), escape(c.usuario?.nome),
+      escape(ultimaOcorrencia.get(String(c.id)) ?? ''),
       escape(c.createdAt), escape(c.updatedAt),
     ].join(','));
 
