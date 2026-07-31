@@ -127,6 +127,14 @@ export class ContatoService extends BaseService {
       await entityManager.update(Cliente, createContatoDto.cliente, atualizacaoCliente);
     }
 
+    // Transfere o cliente de Anderson prospect (usuário 4) para Anderson base (usuário 10) quando um pedido (ocorrência 9) for feito
+    if (ocorrenciaIds.includes('9') && cliente.usuario?.id === '4') {
+      const novoUsuario = await this.usuarioService.findOne(systemId, { id: '10' });
+      if (novoUsuario) {
+        await entityManager.update(Cliente, createContatoDto.cliente, { usuario: novoUsuario });
+      }
+    }
+
     return contatoCriado
   }
 
