@@ -1,4 +1,4 @@
-import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateAgendamentoDto } from './dto/create-agendamento.dto';
 import { UpdateAgendamentoDto } from './dto/update-agendamento.dto';
 import { UsuarioService } from '../usuario/usuario.service';
@@ -46,6 +46,17 @@ export class AgendamentoService extends BaseService {
     if (!cliente) throw new NotFoundException('Cliente não encontrado');
 
     if (!usuario) throw new NotFoundException('Usuário não encontrado');
+
+    const agendamentoDoClienteJaExiste = await entityManager.findOne(Agendamento, {
+      where:
+      {
+        cliente: { id: cliente.id },
+        usuario: { id: usuario.id },
+        date: new Date(createAgendamentoDto.date),
+        time: new Date(createAgendamentoDto.time)
+      }
+    });
+    if (agendamentoDoClienteJaExiste) throw new BadRequestException('Agendamento do cliente já existe para a data e horário informados');
 
     const novoAgendamento = await entityManager.save(Agendamento,
       entityManager.create(Agendamento, {
