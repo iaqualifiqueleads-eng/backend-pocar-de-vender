@@ -118,7 +118,7 @@ export class AgendamentoService extends BaseService {
     });
   }
 
-  async findRelatorio(systemId: string, { from, to, possivel_cliente, usuariosIds, ocorenciasIds, limit = 100, page }: { usuariosIds?: string[]; ocorenciasIds?: string[] } & BetweenQueryDto & PossivelClienteQueryDto & PaginationDto) {
+  async findRelatorio(systemId: string, { from, to, possivel_cliente, usuariosIds, ocorenciasIds, limit = 1000, page }: { usuariosIds?: string[]; ocorenciasIds?: string[] } & BetweenQueryDto & PossivelClienteQueryDto & PaginationDto) {
     const entityManager = this.loadEntityManager(systemId);
 
     from = from ?? subWeeks(new Date(), 1);
