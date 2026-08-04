@@ -128,8 +128,8 @@ export class AgendamentoService extends BaseService {
 
   }
 
-  // Conta quantos clientes estocados do usuário possuem agendamento na data informada
-  async countEstocadosPorData(systemId: string, date: string, usuarioId: string): Promise<number> {
+  // Conta os agendamentos do usuário na data informada: total e quantos são de clientes estocados
+  async countPorData(systemId: string, date: string, usuarioId: string): Promise<{ total: number; estocados: number }> {
     const entityManager = this.loadEntityManager(systemId);
 
     const resultado = await entityManager
@@ -137,11 +137,14 @@ export class AgendamentoService extends BaseService {
       .innerJoin('agendamento.cliente', 'cliente')
       .where('agendamento.date = :date', { date })
       .andWhere('agendamento.usuarioId = :usuarioId', { usuarioId })
-      .andWhere('cliente.estocado = :estocado', { estocado: true })
-      .select('COUNT(DISTINCT cliente.id)', 'count')
-      .getRawOne<{ count: string }>();
+      .select('COUNT(agendamento.id)', 'total')
+      .addSelect('COUNT(DISTINCT CASE WHEN cliente.estocado = 1 THEN cliente.id END)', 'estocados')
+      .getRawOne<{ total: string; estocados: string }>();
 
-    return Number(resultado?.count ?? 0);
+    return {
+      total: Number(resultado?.total ?? 0),
+      estocados: Number(resultado?.estocados ?? 0),
+    };
   }
 
   async findOne(systemId: string, id: string) {

@@ -67,15 +67,14 @@ export class AgendamentoController {
   }
 
   @Get('/count/estocados')
-  @ApiOperation({ summary: 'Contar clientes estocados com agendamento na data' })
-  @ApiOkResponse({ type: Number })
+  @ApiOperation({ summary: 'Contar agendamentos do usuário na data (total e de clientes estocados)' })
+  @ApiOkResponse({ type: Object })
   async countEstocados(
     @Req() req: Request,
     @Query('date') date: string,
     @Query('usuarioId') usuarioId: string,
   ) {
-    const count = await this.agendamentoService.countEstocadosPorData(req['systemId'], date, usuarioId);
-    return { count };
+    return await this.agendamentoService.countPorData(req['systemId'], date, usuarioId);
   }
 
   @Get(':id')
