@@ -13,7 +13,8 @@ import { Cliente } from '../cliente/entities/cliente.entity';
 import { BaseService } from '../shared/base-service';
 import { BetweenQueryDto } from 'src/common/dtos/from-to.dto';
 import { PossivelClienteQueryDto } from '../contato/dto/query-possivel-cliente.dto';
-import { Between, FindOptionsWhere, IsNull, LessThanOrEqual, Not } from 'typeorm';
+import { Between, FindOptionsWhere, In, IsNull, LessThanOrEqual, Not } from 'typeorm';
+import { Contato } from '../contato/entities/contato.entity';
 
 @Injectable()
 export class AgendamentoService extends BaseService {
@@ -83,26 +84,33 @@ export class AgendamentoService extends BaseService {
     });
   }
 
-  async findRelatorio(systemId: string, { from, to, possivel_cliente, usuariosIds, limit = 100, page }: { usuariosIds?: string[] } & BetweenQueryDto & PossivelClienteQueryDto & PaginationDto) {
+  async findRelatorio(systemId: string, { from, to, possivel_cliente, usuariosIds, ocorenciasIds, limit = 100, page }: { usuariosIds?: string[]; ocorenciasIds?: string[] } & BetweenQueryDto & PossivelClienteQueryDto & PaginationDto) {
     const entityManager = this.loadEntityManager(systemId);
 
     from = from ?? subWeeks(new Date(), 1);
     to = to ?? new Date();
 
     const clienteWhere: FindOptionsWhere<any> = {
-      // Garante que o cliente não seja nulo
       id: Not(IsNull()),
     };
-    // 🔸 Filtro de data (from e to)
     if (from && to) {
       clienteWhere.proximo_contato = Between(new Date(from), addDays(new Date(to), 1));
     }
-    // 🔸 Filtro de possível cliente
     if (possivel_cliente !== undefined) {
       clienteWhere.possivel_cliente = possivel_cliente === 'true';
     }
 
-    // let where = [];
+    // 🔸 Filtro por ocorrências: busca clientes que tiveram contato com essas ocorrências
+    if (ocorenciasIds?.length) {
+      const contatos = await entityManager.find(Contato, {
+        where: { ocorrencias: ocorenciasIds.map((id) => ({ id })) },
+        relations: ['cliente'],
+      });
+      const clienteIds = [...new Set(contatos.filter(c => c.cliente).map(c => c.cliente.id))];
+      if (clienteIds.length === 0) return [];
+      clienteWhere.id = In(clienteIds);
+    }
+
     let query: FindOptionsWhere<Agendamento> | FindOptionsWhere<Agendamento>[] = {
       cliente: clienteWhere
     };

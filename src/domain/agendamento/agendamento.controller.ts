@@ -82,6 +82,7 @@ export class AgendamentoController {
     @Query() { from, to }: BetweenQueryDto,
     @Query() { possivel_cliente }: PossivelClienteQueryDto,
     @Query() { page, limit }: PaginationDto,
+    @Query('ids') ids?: string,
   ) {
     this.logger.verbose("[Agendamento Controller][relatorio]");
 
@@ -89,6 +90,7 @@ export class AgendamentoController {
       req['systemId'],
       {
         usuariosIds: usuariosIds?.split(','),
+        ocorenciasIds: ids ? ids.split(',') : undefined,
         from,
         to,
         possivel_cliente
