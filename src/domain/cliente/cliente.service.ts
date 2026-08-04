@@ -192,33 +192,34 @@ export class ClienteService extends BaseService {
   }
 
   /**
-   * Retorna os ids dos clientes cuja ÚLTIMA ocorrência está entre as informadas.
-   * Mesma lógica da tabela /relatorios: considera apenas o contato mais recente de cada cliente.
+   * Mapa clienteId -> última ocorrência (a do contato mais recente do cliente).
+   * Mesma lógica da tabela /relatorios. Seleciona só as colunas necessárias para não
+   * hidratar as entidades inteiras de contato/cliente.
    */
-  private async clienteIdsPorUltimaOcorrencia(systemId: string, ocorrenciasIds: string[]): Promise<string[]> {
+  private async ultimaOcorrenciaPorCliente(systemId: string): Promise<Map<string, { id: string; nome: string }>> {
     const entityManager = this.loadEntityManager(systemId);
 
-    const contatos = await entityManager.find(Contato, {
-      relations: ['cliente', 'ocorrencias'],
-      order: { createdAt: 'ASC' },
-      withDeleted: false,
-    });
+    const contatos = await entityManager
+      .createQueryBuilder(Contato, 'contato')
+      .innerJoin('contato.cliente', 'cliente')
+      .leftJoin('contato.ocorrencias', 'ocorrencia')
+      .select(['contato.id', 'contato.createdAt', 'cliente.id', 'ocorrencia.id', 'ocorrencia.nome'])
+      .orderBy('contato.createdAt', 'ASC')
+      .getMany();
 
-    // Como está ordenado ASC, o Map fica com o contato mais recente de cada cliente
-    const ultimoContatoPorCliente = new Map<string, Contato>();
+    // Ordenado ASC, então o último write no Map é sempre o contato mais recente do cliente
+    const ultimaOcorrencia = new Map<string, { id: string; nome: string }>();
     for (const contato of contatos) {
-      if (contato.cliente) ultimoContatoPorCliente.set(contato.cliente.id, contato);
+      if (!contato.cliente) continue;
+      const ocorrencia = contato.ocorrencias?.[0];
+      if (ocorrencia) {
+        ultimaOcorrencia.set(contato.cliente.id, { id: ocorrencia.id, nome: ocorrencia.nome });
+      } else {
+        ultimaOcorrencia.delete(contato.cliente.id);
+      }
     }
 
-    const ids: string[] = [];
-    ultimoContatoPorCliente.forEach((contato, clienteId) => {
-      const ultimaOcorrencia = contato.ocorrencias?.[0];
-      if (ultimaOcorrencia && ocorrenciasIds.includes(ultimaOcorrencia.id)) {
-        ids.push(clienteId);
-      }
-    });
-
-    return ids;
+    return ultimaOcorrencia;
   }
 
   async findAll(systemId: string, {
@@ -227,7 +228,7 @@ export class ClienteService extends BaseService {
     usuarioId,
     contatado,
     ocorrenciasIds,
-  }: PaginationDto & ClienteQueryDto & { ocorrenciasIds?: string[] }): Promise<Cliente[]> {
+  }: PaginationDto & ClienteQueryDto & { ocorrenciasIds?: string[] }): Promise<(Cliente & { ultima_ocorrencia: string | null })[]> {
     const entityManager = this.loadEntityManager(systemId);
 
     let query: any = {};
@@ -240,18 +241,27 @@ export class ClienteService extends BaseService {
       }
     }
 
+    const ultimaOcorrencia = await this.ultimaOcorrenciaPorCliente(systemId);
+
     if (ocorrenciasIds?.length) {
-      const clienteIds = await this.clienteIdsPorUltimaOcorrencia(systemId, ocorrenciasIds);
+      const clienteIds: string[] = [];
+      ultimaOcorrencia.forEach((ocorrencia, clienteId) => {
+        if (ocorrenciasIds.includes(ocorrencia.id)) clienteIds.push(clienteId);
+      });
       if (clienteIds.length === 0) return [];
       query = { ...query, id: In(clienteIds) };
     }
 
-    return await entityManager.find(Cliente, {
+    const clientes = await entityManager.find(Cliente, {
       where: query,
       skip: (page - 1) * limit,
       take: limit,
       relations: ['usuario', "produtos"],
     });
+
+    return clientes.map((cliente) => Object.assign(cliente, {
+      ultima_ocorrencia: ultimaOcorrencia.get(cliente.id)?.nome ?? null,
+    }));
   }
 
   async findAllByUsuariosIds(systemId: string, usuariosIds: string[]): Promise<Cliente[]> {
