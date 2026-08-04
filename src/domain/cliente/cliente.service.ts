@@ -10,7 +10,7 @@ import { CreateClienteDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
 import { UsuarioService } from '../usuario/usuario.service';
 import { PaginationDto } from '../shared/query-dto/pagination.dto';
-import { Between, IsNull, Like, Not, Timestamp } from 'typeorm';
+import { Between, In, IsNull, Like, Not, Timestamp } from 'typeorm';
 import { Cliente } from './entities/cliente.entity';
 import { ModuleRef } from '@nestjs/core';
 import { Usuario } from '../usuario/entities/usuario.entity';
@@ -191,15 +191,46 @@ export class ClienteService extends BaseService {
     }
   }
 
+  /**
+   * Retorna os ids dos clientes cuja ÚLTIMA ocorrência está entre as informadas.
+   * Mesma lógica da tabela /relatorios: considera apenas o contato mais recente de cada cliente.
+   */
+  private async clienteIdsPorUltimaOcorrencia(systemId: string, ocorrenciasIds: string[]): Promise<string[]> {
+    const entityManager = this.loadEntityManager(systemId);
+
+    const contatos = await entityManager.find(Contato, {
+      relations: ['cliente', 'ocorrencias'],
+      order: { createdAt: 'ASC' },
+      withDeleted: false,
+    });
+
+    // Como está ordenado ASC, o Map fica com o contato mais recente de cada cliente
+    const ultimoContatoPorCliente = new Map<string, Contato>();
+    for (const contato of contatos) {
+      if (contato.cliente) ultimoContatoPorCliente.set(contato.cliente.id, contato);
+    }
+
+    const ids: string[] = [];
+    ultimoContatoPorCliente.forEach((contato, clienteId) => {
+      const ultimaOcorrencia = contato.ocorrencias?.[0];
+      if (ultimaOcorrencia && ocorrenciasIds.includes(ultimaOcorrencia.id)) {
+        ids.push(clienteId);
+      }
+    });
+
+    return ids;
+  }
+
   async findAll(systemId: string, {
     page,
     limit,
     usuarioId,
-    contatado
-  }: PaginationDto & ClienteQueryDto): Promise<Cliente[]> {
+    contatado,
+    ocorrenciasIds,
+  }: PaginationDto & ClienteQueryDto & { ocorrenciasIds?: string[] }): Promise<Cliente[]> {
     const entityManager = this.loadEntityManager(systemId);
 
-    let query = {};
+    let query: any = {};
     if (usuarioId) query = { usuario: { id: usuarioId } }
     if (contatado != undefined) {
       if (contatado === "true") {
@@ -207,6 +238,12 @@ export class ClienteService extends BaseService {
       } else if (contatado == "false") {
         query = { ...query, ultimo_contato: IsNull() }
       }
+    }
+
+    if (ocorrenciasIds?.length) {
+      const clienteIds = await this.clienteIdsPorUltimaOcorrencia(systemId, ocorrenciasIds);
+      if (clienteIds.length === 0) return [];
+      query = { ...query, id: In(clienteIds) };
     }
 
     return await entityManager.find(Cliente, {

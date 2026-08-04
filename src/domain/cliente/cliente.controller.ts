@@ -144,6 +144,7 @@ export class ClienteController {
     @Req() req: Request,
     @Query() { page = 1, limit = 100000 }: PaginationDto,
     @Query() { usuarioId, contatado }: ClienteQueryDto,
+    @Query('ocorrenciasIds') ocorrenciasIds?: string,
   ) {
     this.logger.verbose("[Cliente Controller][FindAll]");
 
@@ -152,7 +153,8 @@ export class ClienteController {
         page,
         limit,
         usuarioId,
-        contatado
+        contatado,
+        ocorrenciasIds: ocorrenciasIds ? ocorrenciasIds.split(',') : undefined,
       });
       
       // console.log(clientes.length);
