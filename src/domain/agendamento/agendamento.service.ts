@@ -128,6 +128,21 @@ export class AgendamentoService extends BaseService {
 
   }
 
+  // Conta quantos clientes estocados possuem agendamento na data informada
+  async countEstocadosPorData(systemId: string, date: string): Promise<number> {
+    const entityManager = this.loadEntityManager(systemId);
+
+    const resultado = await entityManager
+      .createQueryBuilder(Agendamento, 'agendamento')
+      .innerJoin('agendamento.cliente', 'cliente')
+      .where('agendamento.date = :date', { date })
+      .andWhere('cliente.estocado = :estocado', { estocado: true })
+      .select('COUNT(DISTINCT cliente.id)', 'count')
+      .getRawOne<{ count: string }>();
+
+    return Number(resultado?.count ?? 0);
+  }
+
   async findOne(systemId: string, id: string) {
     const entityManager = this.loadEntityManager(systemId);
     return await entityManager.findOne(Agendamento, {

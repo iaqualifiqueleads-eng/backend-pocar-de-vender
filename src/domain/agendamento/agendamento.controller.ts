@@ -66,6 +66,14 @@ export class AgendamentoController {
     return this.agendamentoService.findAll(req['systemId'], { page, limit, usuarioId, clienteId });
   }
 
+  @Get('/count/estocados')
+  @ApiOperation({ summary: 'Contar clientes estocados com agendamento na data' })
+  @ApiOkResponse({ type: Number })
+  async countEstocados(@Req() req: Request, @Query('date') date: string) {
+    const count = await this.agendamentoService.countEstocadosPorData(req['systemId'], date);
+    return { count };
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Consultar agendamento' })
   @ApiOkResponse({ type: AgendamentoResponseDto })
