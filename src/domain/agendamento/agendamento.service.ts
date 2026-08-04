@@ -89,14 +89,14 @@ export class AgendamentoService extends BaseService {
       }),
     );
 
-    const agendamentos = await this.findAll(systemId, { clienteId: cliente.id, limit: 1, page: 1 });
+    const agendamentos = await this.findAll(systemId, { clienteId: cliente.id, limit: 1, page: 1, order: 'ASC' });
 
     await this.updateProximoContatoDoCliente(systemId, cliente.id, agendamentos.length > 0 ? agendamentos[0].date : null);
 
     return novoAgendamento
   }
 
-  async findAll(systemId: string, { page = 1, limit = 1000, usuarioId, clienteId }: PaginationDto & UsuarioIdQueryDto & ClienteIdQueryDto) {
+  async findAll(systemId: string, { page = 1, limit = 1000, usuarioId, clienteId, order = 'DESC' }: { order?: 'ASC' | 'DESC' } & PaginationDto & UsuarioIdQueryDto & ClienteIdQueryDto) {
     const entityManager = this.loadEntityManager(systemId);
 
     let query = [];
@@ -114,7 +114,7 @@ export class AgendamentoService extends BaseService {
       skip: (page - 1) * limit,
       take: limit,
       relations: ['cliente', 'usuario'],
-      order: { date: 'ASC' },
+      order: { date: order },
     });
   }
 
@@ -201,7 +201,7 @@ export class AgendamentoService extends BaseService {
 
     const agendamentoAtualizado = await this.findOne(systemId, id);
 
-    const agendamentos = await this.findAll(systemId, { clienteId: agendamentoAtualizado.cliente.id, limit: 1, page: 1 });
+    const agendamentos = await this.findAll(systemId, { clienteId: agendamentoAtualizado.cliente.id, limit: 1, page: 1, order: 'ASC' });
 
     // atualiza proximo contato do cliente caso não exista ou seja antes do proximo contato
     if (agendamentos.length > 0 && agendamentos[0].cliente.proximo_contato === null || isBefore(agendamentos[0].date, agendamentos[0].cliente.proximo_contato)) {
@@ -218,7 +218,7 @@ export class AgendamentoService extends BaseService {
 
     const result = await entityManager.delete(Agendamento, { id });
 
-    const agendamentos = await this.findAll(systemId, { clienteId: cliente.id, limit: 1, page: 1 });
+    const agendamentos = await this.findAll(systemId, { clienteId: cliente.id, limit: 1, page: 1, order: 'ASC' });
     if (agendamentos.length === 0) {
       await this.updateProximoContatoDoCliente(systemId, cliente.id, null);
     } else {
