@@ -13,7 +13,7 @@ import { Cliente } from '../cliente/entities/cliente.entity';
 import { BaseService } from '../shared/base-service';
 import { BetweenQueryDto } from 'src/common/dtos/from-to.dto';
 import { PossivelClienteQueryDto } from '../contato/dto/query-possivel-cliente.dto';
-import { Between, FindOptionsWhere, In, IsNull, LessThanOrEqual, Not } from 'typeorm';
+import { Between, EntityManager, FindOptionsWhere, In, IsNull, LessThanOrEqual, Not } from 'typeorm';
 import { Contato } from '../contato/entities/contato.entity';
 
 @Injectable()
@@ -26,6 +26,33 @@ export class AgendamentoService extends BaseService {
     private readonly clienteService: ClienteService,
   ) {
     super(moduleRef);
+  }
+
+  // A coluna time é TIME no banco ("13:15" precisa virar "13:15:00" para bater na comparação)
+  static normalizeTime(time: string): string {
+    return time?.length === 5 ? `${time}:00` : time;
+  }
+
+  /**
+   * Impede agendamentos duplicados: mesmo cliente, mesma data e mesmo horário.
+   * Aceita um EntityManager para poder ser usado dentro de transações (ex.: importação de clientes).
+   */
+  async agendamentoJaExiste(
+    systemId: string,
+    { clienteId, date, time }: { clienteId: string; date: string; time: string },
+    manager?: EntityManager,
+  ): Promise<boolean> {
+    const entityManager = manager ?? this.loadEntityManager(systemId);
+
+    const existente = await entityManager.findOne(Agendamento, {
+      where: {
+        cliente: { id: clienteId },
+        date: date?.slice(0, 10) as any,
+        time: AgendamentoService.normalizeTime(time) as any,
+      },
+    });
+
+    return !!existente;
   }
 
   private async updateProximoContatoDoCliente(systemId: string, clienteId: string, proximo_contato: Date | null) {
@@ -47,16 +74,12 @@ export class AgendamentoService extends BaseService {
 
     if (!usuario) throw new NotFoundException('Usuário não encontrado');
 
-    const agendamentoDoClienteJaExiste = await entityManager.findOne(Agendamento, {
-      where:
-      {
-        cliente: { id: cliente.id },
-        usuario: { id: usuario.id },
-        date: new Date(createAgendamentoDto.date),
-        time: new Date(createAgendamentoDto.time)
-      }
+    const jaExiste = await this.agendamentoJaExiste(systemId, {
+      clienteId: cliente.id,
+      date: createAgendamentoDto.date,
+      time: createAgendamentoDto.time,
     });
-    if (agendamentoDoClienteJaExiste) throw new BadRequestException('Agendamento do cliente já existe para a data e horário informados');
+    if (jaExiste) throw new BadRequestException('Agendamento do cliente já existe para a data e horário informados');
 
     const novoAgendamento = await entityManager.save(Agendamento,
       entityManager.create(Agendamento, {

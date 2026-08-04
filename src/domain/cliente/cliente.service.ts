@@ -164,11 +164,22 @@ export class ClienteService extends BaseService {
 
         for (const cliente of clientes_salvos) {
           if (cliente.proximo_contato) {
+            const date = cliente.proximo_contato.toString();
+            const time = cliente.proximo_contato ? new Date(cliente.proximo_contato).toISOString().slice(11, 5) : "00:00";
+
+            // Não cria agendamento duplicado (mesmo cliente, data e horário)
+            const jaExiste = await this.agendamentoService.agendamentoJaExiste(
+              systemId,
+              { clienteId: cliente.id, date, time },
+              manager,
+            );
+            if (jaExiste) continue;
+
             await manager.save(Agendamento, manager.create(Agendamento, {
               cliente: cliente,
               usuario: cliente.usuario,
-              date: cliente.proximo_contato.toString(),
-              time: cliente.proximo_contato ? new Date(cliente.proximo_contato).toISOString().slice(11, 5) : "00:00",
+              date,
+              time,
             }))
           }
         }
