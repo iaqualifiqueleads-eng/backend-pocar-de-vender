@@ -72,6 +72,9 @@ export class Cliente extends AggregateRoot {
   @Column({ type: 'varchar', length: 512, nullable: true })
   obs?: string;
 
+  @Column({ type: 'longtext', nullable: true })
+  motivoTransferencia?: string;
+
   @Column({ type: 'varchar', length: 255, nullable: true })
   contato?: string;
 
