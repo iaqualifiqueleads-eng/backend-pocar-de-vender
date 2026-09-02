@@ -406,6 +406,7 @@ export class ClienteService extends BaseService {
       throw new BadRequestException('Nenhum ID de cliente válido foi enviado.');
     }
 
+    const usuarioId = String(clienteTransferirDto.usuarioId).trim();
     const usuario = await entityManager.findOne(Usuario, { where: { id: usuarioId } });
     if (!usuario) {
       throw new NotFoundException(`Usuário ${usuarioId} não encontrado.`);
