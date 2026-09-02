@@ -394,9 +394,15 @@ export class ClienteService extends BaseService {
   async tranferirClientes(systemId: string, clienteTransferirDto: ClienteTransferirDto): Promise<string> {
     const entityManager = this.loadEntityManager(systemId);
 
-    await Promise.all(clienteTransferirDto.clientesIds.map(async (clienteId) => {
-      return await entityManager.update(Cliente, clienteId, { usuario: { id: clienteTransferirDto.usuarioId } });
-    }))
+    // Atualiza em lotes com IN (...) para não abrir uma query por cliente
+    // (com 1000 clientes isso estourava o pool de conexões).
+    const CHUNK_SIZE = 200;
+    const clientesIds = [...new Set(clienteTransferirDto.clientesIds.filter(Boolean))];
+
+    for (let i = 0; i < clientesIds.length; i += CHUNK_SIZE) {
+      const lote = clientesIds.slice(i, i + CHUNK_SIZE);
+      await entityManager.update(Cliente, { id: In(lote) }, { usuario: { id: clienteTransferirDto.usuarioId } });
+    }
 
     return "Cliente transferido com sucesso.";
   }
