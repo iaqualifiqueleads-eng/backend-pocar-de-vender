@@ -16,7 +16,7 @@ import { ContatoService } from './contato.service';
 import { CreateContato } from './dto/create-contato.dto';
 import { ApiBearerAuth, ApiCreatedResponse, ApiHeader, ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ContatoResponseDto } from './dto/contato.response.dto';
-import { MetricasResponseDto } from './dto/metricas.response.dto';
+import { ClienteUltimaOcorrenciaDto, MetricasResponseDto } from './dto/metricas.response.dto';
 import {
   ClienteQueryDto,
   UsuarioQueryDto,
@@ -27,6 +27,7 @@ import { JwtGuard } from 'src/common/guards/jwt.guard';
 import { Request, Response } from 'express';
 import { IdsQueryDto } from 'src/common/dtos/ids.dto';
 import { BetweenQueryDto } from 'src/common/dtos/from-to.dto';
+import { OcorrenciaIdQueryDto } from 'src/common/dtos/ocorrencia-id.dto';
 import { PossivelClienteQueryDto } from './dto/query-possivel-cliente.dto';
 import { UsuariosIdsQueryDto } from './dto/usuario-ids.dto';
 import { NaBaseQueryDto } from './dto/na_base-query.dto';
@@ -132,6 +133,31 @@ export class ContatoController {
     if (estocado !== undefined) filtros.estocado = estocado === 'true';
     if (prefere_fornecedor_atual !== undefined) filtros.prefere_fornecedor_atual = prefere_fornecedor_atual === 'true';
     return this.contatoService.getMetricas(req['systemId'], filtros);
+  }
+
+  @Get('metricas/ultima-ocorrencia/clientes')
+  @ApiOperation({ summary: 'Lista os clientes cuja última ocorrência é a informada' })
+  @ApiOkResponse({ type: [ClienteUltimaOcorrenciaDto] })
+  getClientesPorUltimaOcorrencia(
+    @Req() req: Request,
+    @Query() { ocorrenciaId }: OcorrenciaIdQueryDto,
+    @Query() { ids }: IdsQueryDto,
+    @Query() { from, to }: BetweenQueryDto,
+    @Query() { na_base }: NaBaseQueryDto,
+    @Query() { estocado, prefere_fornecedor_atual }: ClienteFlagsQueryDto,
+  ) {
+    if (!ocorrenciaId) throw new BadRequestException('ocorrenciaId é obrigatório.');
+
+    const filtros: any = {
+      ocorrenciaId,
+      usuariosIds: ids ? ids.split(',') : [req.user['sub']],
+      from,
+      to,
+    };
+    if (na_base !== undefined) filtros.na_base = na_base === 'true';
+    if (estocado !== undefined) filtros.estocado = estocado === 'true';
+    if (prefere_fornecedor_atual !== undefined) filtros.prefere_fornecedor_atual = prefere_fornecedor_atual === 'true';
+    return this.contatoService.getClientesPorUltimaOcorrencia(req['systemId'], filtros);
   }
 
   @Get("relatorio/relatorio-dashboard")

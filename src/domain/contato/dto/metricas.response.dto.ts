@@ -9,6 +9,24 @@ export class OcorrenciaMetricaDto {
   @ApiProperty() media_em_segundos: number;
 }
 
+export class UltimaOcorrenciaMetricaDto {
+  @ApiProperty() id: string;
+  @ApiProperty() nome: string;
+  @ApiProperty() clientes: number;
+}
+
+export class ClienteUltimaOcorrenciaDto {
+  @ApiProperty() id: string;
+  @ApiProperty() nome: string;
+  @ApiProperty() ddd: string;
+  @ApiProperty() telefone_principal: string;
+  @ApiProperty() na_base: boolean;
+  @ApiProperty() ultimo_contato: Date;
+  @ApiProperty({ nullable: true }) usuario_id: string | null;
+  @ApiProperty({ nullable: true }) usuario_nome: string | null;
+  @ApiProperty({ type: [String] }) ocorrencias: string[];
+}
+
 export class MetricasResponseDto {
   @ApiProperty() contatos: number;
   @ApiProperty() contatados: number;
@@ -17,4 +35,5 @@ export class MetricasResponseDto {
   @ApiProperty() nao_contatados: number;
   @ApiProperty() possiveis_clientes: number;
   @ApiProperty({ type: [OcorrenciaMetricaDto] }) por_ocorrencia: OcorrenciaMetricaDto[];
+  @ApiProperty({ type: [UltimaOcorrenciaMetricaDto] }) por_ultima_ocorrencia: UltimaOcorrenciaMetricaDto[];
 }

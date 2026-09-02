@@ -421,6 +421,9 @@ export class ContatoService extends BaseService {
         };
       });
 
+    // quantos clientes estão com cada ocorrência como a ÚLTIMA registrada no período
+    const por_ultima_ocorrencia = this.agrupaPorUltimaOcorrencia(contatos);
+
     return {
       contatos: contatos.length,
       contatados: clientesUnicosMapa.size,
@@ -429,7 +432,105 @@ export class ContatoService extends BaseService {
       nao_contatados: clientes.filter(c => !c.primeiro_contato).length,
       possiveis_clientes: clientes.filter(c => c.possivel_cliente === true).length,
       por_ocorrencia,
+      por_ultima_ocorrencia,
     };
+  }
+
+  /**
+   * Mantém, para cada cliente, apenas o contato mais recente da lista recebida.
+   */
+  private ultimoContatoPorCliente(contatos: Contato[]) {
+    const ultimoPorCliente = new Map<string, Contato>();
+
+    contatos.filter(c => c.cliente != null).forEach(contato => {
+      const atual = ultimoPorCliente.get(contato.cliente.id);
+      if (!atual) {
+        ultimoPorCliente.set(contato.cliente.id, contato);
+        return;
+      }
+      const maisNovo =
+        new Date(contato.createdAt).getTime() - new Date(atual.createdAt).getTime();
+      // empate na data: mantém o de maior id (inserido por último)
+      if (maisNovo > 0 || (maisNovo === 0 && Number(contato.id) > Number(atual.id))) {
+        ultimoPorCliente.set(contato.cliente.id, contato);
+      }
+    });
+
+    return ultimoPorCliente;
+  }
+
+  /**
+   * Conta clientes por ocorrência do último contato.
+   * Se o último contato tiver mais de uma ocorrência, o cliente conta em todas.
+   */
+  private agrupaPorUltimaOcorrencia(contatos: Contato[]) {
+    const ultimoPorCliente = this.ultimoContatoPorCliente(contatos);
+
+    const mapa = new Map<string, { nome: string; clientes: Set<string> }>();
+    ultimoPorCliente.forEach((contato, clienteId) => {
+      contato.ocorrencias?.forEach(ocorrencia => {
+        if (!mapa.has(ocorrencia.id)) {
+          mapa.set(ocorrencia.id, { nome: ocorrencia.nome, clientes: new Set() });
+        }
+        mapa.get(ocorrencia.id).clientes.add(clienteId);
+      });
+    });
+
+    return Array.from(mapa.entries())
+      .map(([id, { nome, clientes }]) => ({ id, nome, clientes: clientes.size }))
+      .sort((a, b) => b.clientes - a.clientes);
+  }
+
+  /**
+   * Lista os clientes cuja última ocorrência (no período/filtros informados) é a ocorrência pedida.
+   */
+  async getClientesPorUltimaOcorrencia(systemId: string, {
+    ocorrenciaId,
+    usuariosIds,
+    from,
+    to,
+    na_base,
+    estocado,
+    prefere_fornecedor_atual,
+  }: { ocorrenciaId: string; usuariosIds?: string[]; na_base?: boolean; estocado?: boolean; prefere_fornecedor_atual?: boolean } & BetweenQueryDto) {
+    const entityManager = this.loadEntityManager(systemId);
+
+    const fromDate = from ? new Date(from) : subWeeks(new Date(), 1);
+    const toDate = to ? addDays(new Date(to), 1) : new Date();
+
+    const clienteFilter: any = {};
+    if (typeof na_base === 'boolean') clienteFilter.na_base = na_base;
+    if (typeof estocado === 'boolean') clienteFilter.estocado = estocado;
+    if (typeof prefere_fornecedor_atual === 'boolean') clienteFilter.prefere_fornecedor_atual = prefere_fornecedor_atual;
+
+    const where: any = { createdAt: Between(fromDate, toDate) };
+    if (usuariosIds?.length) where.usuario = usuariosIds.map((id) => ({ id }));
+    if (Object.keys(clienteFilter).length > 0) where.cliente = clienteFilter;
+
+    const contatos = await entityManager.find(Contato, {
+      where,
+      relations: ['cliente', 'usuario'],
+    });
+
+    const ultimoPorCliente = this.ultimoContatoPorCliente(contatos);
+
+    const clientes = [];
+    ultimoPorCliente.forEach((contato) => {
+      if (!contato.ocorrencias?.some(o => o.id === ocorrenciaId)) return;
+      clientes.push({
+        id: contato.cliente.id,
+        nome: contato.cliente.nome,
+        ddd: contato.cliente.ddd,
+        telefone_principal: contato.cliente.telefone_principal,
+        na_base: contato.cliente.na_base,
+        ultimo_contato: contato.createdAt,
+        usuario_id: contato.usuario?.id ?? null,
+        usuario_nome: contato.usuario?.nome ?? null,
+        ocorrencias: contato.ocorrencias.map(o => o.nome),
+      });
+    });
+
+    return clientes.sort((a, b) => a.nome.localeCompare(b.nome));
   }
 
   async findAllTemp(systemId: string) {

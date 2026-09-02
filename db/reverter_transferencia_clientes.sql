@@ -1,0 +1,67 @@
+-- Reversao da transferencia indevida: devolve o cliente ao usuario do seu
+-- ULTIMO contato (contato.usuarioId do maior contato.id nao deletado).
+-- Aplica-se apenas aos clientes listados que ainda estao com usuarioId = 1039546764288.
+
+-- 1) Conferir o que sera revertido (usuario atual x usuario que sera restaurado)
+SELECT c.id,
+       c.nome,
+       c.usuarioId                AS usuario_atual,
+       ct.usuarioId               AS usuario_restaurado,
+       us.nome                    AS usuario_restaurado_nome,
+       ct.id                      AS ultimo_contato_id,
+       ct.createdAt               AS ultimo_contato_data
+FROM cliente c
+JOIN (
+  SELECT clienteId, MAX(id) AS ultimo_contato_id
+  FROM contato
+  WHERE deletedAt IS NULL
+  GROUP BY clienteId
+) u ON u.clienteId = c.id
+JOIN contato ct ON ct.id = u.ultimo_contato_id
+LEFT JOIN usuario us ON us.id = ct.usuarioId
+WHERE c.usuarioId = 1039546764288
+  AND ct.usuarioId IS NOT NULL
+  AND c.id IN (
+    660498219010, 1065857027072, 6933871887361, 7510681412619, 10713410821121,
+    11067409378304, 11129908702208, 11222988696576, 11301803863040, 11309991144448,
+    11325250022400, 11359781727232, 11407693261824, 11408632785920, 11416513883136,
+    11457542564864, 11487913520128, 11491923274752, 11494800567296, 11514178251776,
+    11554946886656, 11556440058880, 11726426811392, 11726749772800, 11730528840704,
+    12179298397184, 12309518953472, 12486568913920, 13123650137088, 13280345140224
+  )
+ORDER BY c.nome;
+
+-- 2) Reverter
+UPDATE cliente c
+JOIN (
+  SELECT clienteId, MAX(id) AS ultimo_contato_id
+  FROM contato
+  WHERE deletedAt IS NULL
+  GROUP BY clienteId
+) u ON u.clienteId = c.id
+JOIN contato ct ON ct.id = u.ultimo_contato_id
+SET c.usuarioId = ct.usuarioId,
+    c.updatedAt = CURRENT_TIMESTAMP(6)
+WHERE c.usuarioId = 1039546764288
+  AND ct.usuarioId IS NOT NULL
+  AND c.id IN (
+    660498219010, 1065857027072, 6933871887361, 7510681412619, 10713410821121,
+    11067409378304, 11129908702208, 11222988696576, 11301803863040, 11309991144448,
+    11325250022400, 11359781727232, 11407693261824, 11408632785920, 11416513883136,
+    11457542564864, 11487913520128, 11491923274752, 11494800567296, 11514178251776,
+    11554946886656, 11556440058880, 11726426811392, 11726749772800, 11730528840704,
+    12179298397184, 12309518953472, 12486568913920, 13123650137088, 13280345140224
+  );
+
+-- 3) Sobraram clientes da lista sem reversao? (sem contato valido ou contato sem usuario)
+SELECT c.id, c.nome, c.usuarioId
+FROM cliente c
+WHERE c.usuarioId = 1039546764288
+  AND c.id IN (
+    660498219010, 1065857027072, 6933871887361, 7510681412619, 10713410821121,
+    11067409378304, 11129908702208, 11222988696576, 11301803863040, 11309991144448,
+    11325250022400, 11359781727232, 11407693261824, 11408632785920, 11416513883136,
+    11457542564864, 11487913520128, 11491923274752, 11494800567296, 11514178251776,
+    11554946886656, 11556440058880, 11726426811392, 11726749772800, 11730528840704,
+    12179298397184, 12309518953472, 12486568913920, 13123650137088, 13280345140224
+  );
