@@ -394,17 +394,49 @@ export class ClienteService extends BaseService {
   async tranferirClientes(systemId: string, clienteTransferirDto: ClienteTransferirDto): Promise<string> {
     const entityManager = this.loadEntityManager(systemId);
 
+    // Normaliza os ids: o CSV importado costuma trazer aspas, espaços e \r,
+    // que faziam o UPDATE não casar com nenhuma linha silenciosamente.
+    const clientesIds = [...new Set(
+      clienteTransferirDto.clientesIds
+        .map((id) => String(id ?? '').trim().replace(/^"|"$/g, ''))
+        .filter((id) => id.length > 0),
+    )];
+
+    if (clientesIds.length === 0) {
+      throw new BadRequestException('Nenhum ID de cliente válido foi enviado.');
+    }
+
+    const usuario = await entityManager.findOne(Usuario, { where: { id: usuarioId } });
+    if (!usuario) {
+      throw new NotFoundException(`Usuário ${usuarioId} não encontrado.`);
+    }
+
     // Atualiza em lotes com IN (...) para não abrir uma query por cliente
     // (com 1000 clientes isso estourava o pool de conexões).
     const CHUNK_SIZE = 200;
-    const clientesIds = [...new Set(clienteTransferirDto.clientesIds.filter(Boolean))];
+    let atualizados = 0;
 
     for (let i = 0; i < clientesIds.length; i += CHUNK_SIZE) {
       const lote = clientesIds.slice(i, i + CHUNK_SIZE);
-      await entityManager.update(Cliente, { id: In(lote) }, { usuario: { id: clienteTransferirDto.usuarioId } });
+      const result = await entityManager.update(
+        Cliente,
+        { id: In(lote) },
+        { usuario: { id: usuarioId } },
+      );
+      atualizados += result.affected ?? 0;
     }
 
-    return "Cliente transferido com sucesso.";
+    if (atualizados === 0) {
+      throw new NotFoundException(
+        `Nenhum cliente foi transferido: os ${clientesIds.length} ID(s) enviados não existem nesta base.`,
+      );
+    }
+
+    if (atualizados < clientesIds.length) {
+      return `${atualizados} de ${clientesIds.length} clientes transferidos. Os demais IDs não foram encontrados nesta base.`;
+    }
+
+    return `${atualizados} cliente(s) transferido(s) com sucesso.`;
   }
 
   async remove(systemId: string, id: string): Promise<string> {
