@@ -123,8 +123,10 @@ export class ContatoController {
     @Query() { from, to }: BetweenQueryDto,
     @Query() { na_base }: NaBaseQueryDto,
     @Query() { estocado, prefere_fornecedor_atual }: ClienteFlagsQueryDto,
+    @Query('escopo') escopo?: 'contato' | 'carteira',
   ) {
     const filtros: any = {
+      escopo: escopo === 'carteira' ? 'carteira' : 'contato',
       usuariosIds: ids ? ids.split(',') : [req.user['sub']],
       from,
       to,
@@ -145,11 +147,13 @@ export class ContatoController {
     @Query() { from, to }: BetweenQueryDto,
     @Query() { na_base }: NaBaseQueryDto,
     @Query() { estocado, prefere_fornecedor_atual }: ClienteFlagsQueryDto,
+    @Query('escopo') escopo?: 'contato' | 'carteira',
   ) {
     if (!ocorrenciaId) throw new BadRequestException('ocorrenciaId é obrigatório.');
 
     const filtros: any = {
       ocorrenciaId,
+      escopo: escopo === 'carteira' ? 'carteira' : 'contato',
       usuariosIds: ids ? ids.split(',') : [req.user['sub']],
       from,
       to,

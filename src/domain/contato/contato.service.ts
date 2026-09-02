@@ -333,7 +333,8 @@ export class ContatoService extends BaseService {
     na_base,
     estocado,
     prefere_fornecedor_atual,
-  }: { usuariosIds?: string[]; na_base?: boolean; estocado?: boolean; prefere_fornecedor_atual?: boolean } & BetweenQueryDto) {
+    escopo,
+  }: { usuariosIds?: string[]; na_base?: boolean; estocado?: boolean; prefere_fornecedor_atual?: boolean; escopo?: 'contato' | 'carteira' } & BetweenQueryDto) {
     const entityManager = this.loadEntityManager(systemId);
 
     const fromDate = from ? new Date(from) : subWeeks(new Date(), 1);
@@ -422,7 +423,22 @@ export class ContatoService extends BaseService {
       });
 
     // quantos clientes estão com cada ocorrência como a ÚLTIMA registrada no período
-    const por_ultima_ocorrencia = this.agrupaPorUltimaOcorrencia(contatos);
+    // escopo 'contato' (padrão): contatos feitos pelos usuários selecionados
+    // escopo 'carteira': clientes que hoje pertencem aos usuários selecionados, independente de quem atendeu
+    const contatosUltimaOcorrencia = escopo === 'carteira'
+      ? await entityManager.find(Contato, {
+        where: {
+          createdAt: Between(fromDate, toDate),
+          cliente: {
+            ...clienteFilter,
+            ...(usuariosIds?.length ? { usuario: { id: In(usuariosIds) } } : {}),
+          },
+        },
+        relations: ['cliente', 'usuario'],
+      })
+      : contatos;
+
+    const por_ultima_ocorrencia = this.agrupaPorUltimaOcorrencia(contatosUltimaOcorrencia);
 
     return {
       contatos: contatos.length,
@@ -492,7 +508,8 @@ export class ContatoService extends BaseService {
     na_base,
     estocado,
     prefere_fornecedor_atual,
-  }: { ocorrenciaId: string; usuariosIds?: string[]; na_base?: boolean; estocado?: boolean; prefere_fornecedor_atual?: boolean } & BetweenQueryDto) {
+    escopo,
+  }: { ocorrenciaId: string; usuariosIds?: string[]; na_base?: boolean; estocado?: boolean; prefere_fornecedor_atual?: boolean; escopo?: 'contato' | 'carteira' } & BetweenQueryDto) {
     const entityManager = this.loadEntityManager(systemId);
 
     const fromDate = from ? new Date(from) : subWeeks(new Date(), 1);
@@ -504,8 +521,16 @@ export class ContatoService extends BaseService {
     if (typeof prefere_fornecedor_atual === 'boolean') clienteFilter.prefere_fornecedor_atual = prefere_fornecedor_atual;
 
     const where: any = { createdAt: Between(fromDate, toDate) };
-    if (usuariosIds?.length) where.usuario = usuariosIds.map((id) => ({ id }));
-    if (Object.keys(clienteFilter).length > 0) where.cliente = clienteFilter;
+    if (escopo === 'carteira') {
+      // clientes que hoje pertencem aos usuários selecionados, independente de quem atendeu
+      where.cliente = {
+        ...clienteFilter,
+        ...(usuariosIds?.length ? { usuario: { id: In(usuariosIds) } } : {}),
+      };
+    } else {
+      if (usuariosIds?.length) where.usuario = usuariosIds.map((id) => ({ id }));
+      if (Object.keys(clienteFilter).length > 0) where.cliente = clienteFilter;
+    }
 
     const contatos = await entityManager.find(Contato, {
       where,
