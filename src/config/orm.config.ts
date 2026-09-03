@@ -17,6 +17,7 @@ export default registerAs('orm', () => {
       password: env.database.password,
       database: systemId,
       synchronize: env.database.synchronize,
+      charset: 'utf8mb4_unicode_ci',
       entities: [__dirname + '/../**/*.entity{.ts,.js}'],
       migrations: ['dist/db/migrations/*.js'],
       extra: {

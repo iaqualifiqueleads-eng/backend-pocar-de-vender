@@ -10,6 +10,7 @@ export const dataSourceOptions: DataSourceOptions = {
   password: env.database.password,
   synchronize: env.database.synchronize,
   timezone: "-03:00",
+  charset: 'utf8mb4_unicode_ci',
 
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
   migrations: ['dist/db/migrations/*.js'],
