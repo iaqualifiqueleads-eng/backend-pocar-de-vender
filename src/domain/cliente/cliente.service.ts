@@ -427,6 +427,27 @@ export class ClienteService extends BaseService {
       atualizados += result.affected ?? 0;
     }
 
+    // Atualiza a origem só dos clientes que vieram com origem preenchida;
+    // agrupa por valor para fazer um UPDATE ... IN (...) por origem.
+    const limpar = (v: string) => String(v ?? '').trim().replace(/^"|"$/g, '').trim();
+    const idsPorOrigem = new Map<string, string[]>();
+    for (const item of clienteTransferirDto.origens ?? []) {
+      const clienteId = limpar(item.clienteId);
+      const origem = limpar(item.origem);
+      if (!clienteId || !origem) continue;
+      idsPorOrigem.set(origem, [...(idsPorOrigem.get(origem) ?? []), clienteId]);
+    }
+
+    for (const [origem, ids] of idsPorOrigem) {
+      for (let i = 0; i < ids.length; i += CHUNK_SIZE) {
+        await entityManager.update(
+          Cliente,
+          { id: In(ids.slice(i, i + CHUNK_SIZE)) },
+          { origem },
+        );
+      }
+    }
+
     if (atualizados === 0) {
       throw new NotFoundException(
         `Nenhum cliente foi transferido: os ${clientesIds.length} ID(s) enviados não existem nesta base.`,
