@@ -314,7 +314,8 @@ export class ClienteService extends BaseService {
 
     const cliente = await this.findOne(systemId, id);
 
-    const { telefones, endereco, ...data } = updateClienteDto;
+    const { telefones, endereco, usuario: usuarioId, ...data } = updateClienteDto;
+    const usuario = usuarioId ? { id: usuarioId } as Usuario : cliente.usuario;
 
     if (endereco.id != "") {
       const enderecoExiste = await this.enderecoService.findOne(systemId, endereco.id);
@@ -338,7 +339,7 @@ export class ClienteService extends BaseService {
     await entityManager.update(Cliente, id, {
       ...data,
       endereco: endereco.id === "" ? novo_endereco : endereco,
-      usuario: cliente.usuario,
+      usuario,
     });
 
     try {
@@ -354,7 +355,7 @@ export class ClienteService extends BaseService {
 
         entityManager.save(Cliente, {
           ...data,
-          usuario: cliente.usuario,
+          usuario,
           telefones: [...telefonesDoCliente, ...cliente.telefones],
         })
       }
