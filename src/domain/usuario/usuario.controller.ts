@@ -58,7 +58,7 @@ export class UsuarioController {
     type: [UsuarioResponseDto],
     description: 'Lista de usuários.',
   })
-  findAll(@Req() req: Request, @Query() { page = 1, limit = 10 }: PaginationDto) {
+  findAll(@Req() req: Request, @Query() { page, limit }: PaginationDto) {
     return this.usuarioService.findAll(req['systemId'], { page, limit });
   }
 

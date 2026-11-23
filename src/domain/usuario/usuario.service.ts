@@ -60,8 +60,7 @@ export class UsuarioService extends BaseService {
       where: {
         role: Not(UsuarioRoles.DEV)
       },
-      skip: (page - 1) * limit,
-      take: limit,
+      ...(limit ? { skip: ((page ?? 1) - 1) * limit, take: limit } : {}),
     });
   }
 
